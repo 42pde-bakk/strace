@@ -1,0 +1,12 @@
+version: '3'
+
+services:
+
+  strace:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+    - .:/code
+    tty: true
+    container_name: strace_pde-bakk
