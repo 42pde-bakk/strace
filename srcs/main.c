@@ -25,10 +25,10 @@ int execute_child(char **argv) {
 	return (res);
 }
 
-static int	init_tracing()
+static int	init_tracing(pid_t child_pid)
 {
 	int status,
-		pid = getpid();
+		pid = child_pid;
 	long ret;
 
 	signal(SIGINT, &catch_sigint);
@@ -53,7 +53,7 @@ int start_tracing(int child_pid) {
 	long	res;
 	int		status;
 
-	if (init_tracing())
+	if (init_tracing(child_pid))
 		return (EXIT_FAILURE);
 
 	close(child_pid);
