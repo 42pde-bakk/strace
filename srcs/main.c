@@ -31,7 +31,6 @@ static int	init_tracing(pid_t child_pid)
 		pid = child_pid;
 	long ret;
 
-	signal(SIGINT, &catch_sigint);
 	ret = ptrace(PTRACE_SEIZE, pid, NULL, NULL);
 	if (ret == -1)
 		perror("PTRACE_SEIZE");
@@ -40,7 +39,7 @@ static int	init_tracing(pid_t child_pid)
 		perror("PTRACE_INTERRUPT");
 	if (waitpid(pid, &status, WUNTRACED) == -1)
 	{
-		dprintf(2, "ft_strace: waitpid fail\n");
+		perror("waitpid");
 		return (EXIT_FAILURE);
 	}
 	return (EXIT_SUCCESS);
