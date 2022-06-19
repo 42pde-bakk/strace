@@ -10,3 +10,5 @@ services:
     - .:/code
     tty: true
     container_name: strace_pde-bakk
+    cap_add:
+      - SYS_PTRACE
