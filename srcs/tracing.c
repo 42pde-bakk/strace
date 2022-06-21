@@ -56,11 +56,19 @@ int	wait_and_check_status(const pid_t child_pid) {
 
 	return (0);
 }
+# include <sys/uio.h>
+#include <elf.h>
 
 int	next_syscall(const pid_t child_pid) {
 	struct user_regs_struct regs;
 	long ret;
+	struct iovec iov = {
+			.iov_base = &regs,
+			.iov_len = sizeof(struct user_regs_struct)
+	};
 	bool isAlive = true;
+
+	ptrace(PTRACE_SETOPTIONS, child_pid, 0, PTRACE_O_EXITKILL);
 
 	while (isAlive) {
 		ret = ptrace(PTRACE_SYSCALL, child_pid, 0, 0);
@@ -74,7 +82,8 @@ int	next_syscall(const pid_t child_pid) {
 		}
 //		waitpid(child_pid, 0, 0);
 
-		ret = ptrace(PTRACE_GETREGS, child_pid, 0, &regs);
+//		ret = ptrace(PTRACE_GETREGS, child_pid, 0, &regs);
+		ret = ptrace(PTRACE_GETREGSET, child_pid, NT_PRSTATUS, &iov);
 		if (ret) {
 			perror("PTRACE_GETREGS1");
 			return (EXIT_FAILURE);

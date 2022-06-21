@@ -6,8 +6,14 @@
 #include "syscalls.h"
 #include <sys/user.h>
 #include <stdio.h>
+#include <string.h>
 
+#include <fcntl.h>
+int g_filefd = -1;
 static void	switch_case(const e_syscall_type eSyscallType, const unsigned long long int regval) {
+	if (g_filefd == -1)
+		g_filefd = open("debug.txt", O_WRONLY , 0644);
+
 	switch (eSyscallType) {
 		case FLAGS:
 		case INT:
@@ -25,7 +31,9 @@ static void	switch_case(const e_syscall_type eSyscallType, const unsigned long l
 			fprintf(stderr, "%p", (void *)regval);
 			break;
 		case STRING:
-			fprintf(stderr, "%s", (char *)regval);
+//			str = (void *)regval;
+			fprintf(stderr, "%s %zu", (char *)((char*)regval + 56), strlen((char *)regval));
+//			fprintf(stderr, "pointer: %p, string: %s, mine: %s\n", (void *)regval, (char *)regval, str);
 			break;
 		case SSIZE_T:
 			fprintf(stderr, "%zd", (ssize_t)regval);
@@ -49,7 +57,7 @@ void	print_syscall(struct user_regs_struct *regs) {
 			regs->r10, regs->r8, regs->r9
 	};
 	if (syscall_nb > MAX_SYSCALL_NB) {
-		fprintf(stderr, "raw regs values:\t%llu(%llu, %llu, %llu, %llu, %llu, %llu)\n",
+		fprintf(stderr, "%llu(%llu, %llu, %llu, %llu, %llu, %llu)",
 				syscall_nb,
 				regs->rdi, regs->rsi, regs->rdx,
 				regs->r10, regs->r8, regs->r9);

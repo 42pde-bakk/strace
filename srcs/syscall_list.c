@@ -66,6 +66,6 @@ t_syscall syscalls[] = {
 		{.nb64 = 56, .nb32 = 120, .return_value = INT, .name = "clone", UNSIGNED_INT, UNSIGNED_INT, POINTER, POINTER, NONE, NONE},
 		{.nb64 = 57, .nb32 = 2, .return_value = INT, .name = "fork", NONE, NONE, NONE, NONE, NONE, NONE},
 		{.nb64 = 58, .nb32 = 190, .return_value = INT, .name = "vfork", NONE, NONE, NONE, NONE, NONE, NONE},
-		{.nb64 = 59, .nb32 = 11, .return_value = INT, .name = "execve", VOID_POINTER, STRING_ARRAY, STRING_ARRAY, NONE, NONE, NONE},
+		{.nb64 = 59, .nb32 = 11, .return_value = INT, .name = "execve", STRING, STRING_ARRAY, STRING_ARRAY, NONE, NONE, NONE},
 		{.nb64 = 60, .nb32 = 1, .return_value = INT, .name = "exit", INT, NONE, NONE, NONE, NONE, NONE},
 };
