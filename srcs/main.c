@@ -2,16 +2,9 @@
 // Created by Peer de Bakker on 6/18/22.
 //
 
-
 #include <stdio.h>
-#include <unistd.h>
-#include <stdbool.h>
-#include <sys/ptrace.h>
 #include <stdlib.h>
-#include <sys/wait.h>
-#include <sys/user.h>
 #include "strace.h"
-#include <string.h>
 
 int execute_child(char **argv) {
 	int		res;
@@ -24,41 +17,6 @@ int execute_child(char **argv) {
 		perror("execvp");
 	return (res);
 }
-
-static int	init_tracing(pid_t child_pid)
-{
-	int status,
-		pid = child_pid;
-	long ret;
-
-	ret = ptrace(PTRACE_SEIZE, pid, NULL, NULL);
-	if (ret == -1)
-		perror("PTRACE_SEIZE");
-	ret = ptrace(PTRACE_INTERRUPT, pid, NULL, NULL);
-	if (ret == -1)
-		perror("PTRACE_INTERRUPT");
-	if (waitpid(pid, &status, WUNTRACED) == -1)
-	{
-		perror("waitpid");
-		return (EXIT_FAILURE);
-	}
-	return (EXIT_SUCCESS);
-}
-
-
-int start_tracing(int child_pid) {
-	struct user_regs_struct regs;
-	siginfo_t	siginfo;
-	long	res;
-	int		status;
-
-	if (init_tracing(child_pid))
-		return (EXIT_FAILURE);
-
-	close(child_pid);
-	return (EXIT_SUCCESS);
-}
-
 
 int main(int argc, char **argv) {
 	pid_t	child;
