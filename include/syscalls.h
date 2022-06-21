@@ -6,8 +6,7 @@
 #define STRACE_SYSCALLS_H
 //#include <sys/syscall.h>
 #include <sys/user.h>
-//#  include <asm/unistd_32.h>
-//#  include <asm/unistd_x32.h>
+#define MAX_SYSCALL_NB 60
 
 typedef enum syscall_type {
 	NONE,
@@ -22,11 +21,13 @@ typedef enum syscall_type {
 	VOID,
 	LONG_INT,
 	FLAGS,
-	VOID_POINTER
+	VOID_POINTER,
+	STRING_ARRAY
 }	e_syscall_type;
 
 typedef struct s_syscall {
-	long int				rax;
+	long int				nb64;
+	long int				nb32;
 	e_syscall_type			return_value;
 	char*					name;
 	union {

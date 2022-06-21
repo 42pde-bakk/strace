@@ -48,37 +48,35 @@ void	print_syscall(struct user_regs_struct *regs) {
 			regs->rdi, regs->rsi, regs->rdx,
 			regs->r10, regs->r8, regs->r9
 	};
-
-	if (syscall_nb >= 10 || 1) {
+	if (syscall_nb > MAX_SYSCALL_NB) {
 		fprintf(stderr, "raw regs values:\t%llu(%llu, %llu, %llu, %llu, %llu, %llu)\n",
 				syscall_nb,
 				regs->rdi, regs->rsi, regs->rdx,
 				regs->r10, regs->r8, regs->r9);
+		return ;
 	}
-	if (syscall_nb < 10) {
-		const t_syscall syscall = syscalls[syscall_nb];
-		// print name
-		fprintf(stderr, "%s(", syscall.name);
-		for (int i = 0; i < 6 && syscall.registers[i] != NONE; i++) {
-			switch_case(syscall.registers[i], registers[i]);
+	const t_syscall syscall = syscalls[syscall_nb];
+	// print name
+	fprintf(stderr, "%s(", syscall.name);
+	for (int i = 0; i < 6 && syscall.registers[i] != NONE; i++) {
+		switch_case(syscall.registers[i], registers[i]);
 
-			if (i < 5 && syscall.registers[i + 1] != NONE) {
-				fprintf(stderr, ", ");
-			}
+		if (i < 5 && syscall.registers[i + 1] != NONE) {
+			fprintf(stderr, ", ");
 		}
-		fprintf(stderr, ")");
 	}
+	fprintf(stderr, ")");
 }
 
 void	print_syscall_return_value(struct user_regs_struct *regs, const unsigned long long int syscallNb) {
+	if (syscallNb > MAX_SYSCALL_NB) {
+		fprintf(stderr, " = %llu\n", regs->rax);
+		return ;
+	}
 	const t_syscall syscall = syscalls[syscallNb];
 
 	fprintf(stderr, " = ");
-	if (syscallNb < 10) {
-		switch_case(syscall.return_value, regs->rax);
-	} else {
-		fprintf(stderr, "%llu", regs->rax);
-	}
+	switch_case(syscall.return_value, regs->rax);
 	fprintf(stderr, "\n");
-//	fprintf(stderr, "rax = %llu, orig_rax = %llu\n", regs->rax, regs->orig_rax);
+//	fprintf(stderr, "nb64 = %llu, orig_rax = %llu\n", regs->nb64, regs->orig_rax);
 }

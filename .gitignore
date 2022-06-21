@@ -53,4 +53,5 @@ dkms.conf
 cmake-build-debug*/
 .idea/
 .vs/
-.vscode/ft_strace
+.vscode/
+ft_strace

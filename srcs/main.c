@@ -11,7 +11,6 @@ int execute_child(char **argv) {
 	char	**cmds;
 
 	cmds = argv + 1;
-	dprintf(2, "lets go execvp(%s, cmds)\n", argv[1]);
 	res = execvp(cmds[0], cmds);
 	if (res == -1)
 		perror("execvp");
@@ -33,6 +32,5 @@ int main(int argc, char **argv) {
 	if (child == 0) {
 		return (execute_child(argv));
 	}
-	dprintf(2, "lets go start_tracing\n");
 	return (start_tracing(child));
 }

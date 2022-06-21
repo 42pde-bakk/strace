@@ -4,10 +4,12 @@
 
 #include <signal.h>
 #include <unistd.h>
+#include <signal.h>
+#include <sys/types.h>
 
 void	catch_sigint(int signal)
 {
 	(void)signal;
-	kill(getpid(), SIGINT);
+//	kill(getpid(), SIGINT);
 	// detach ?
 }

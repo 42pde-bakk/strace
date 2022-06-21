@@ -7,6 +7,7 @@
 
 #include <unistd.h>
 #include <sys/user.h>
+#include <sys/types.h>
 
 /*
  * srcs/signal.c
