@@ -25,15 +25,17 @@ static void	switch_case(const e_syscall_type eSyscallType, const unsigned long l
 		case SIZE_T:
 			fprintf(stderr, "%zu", (size_t)regval);
 			break;
+		case STRING_ARRAY:
+		case STRING:
+			/*
+			 * I'd love to actually print the string,
+			 * But since we aren't allowed to use PTRACE_PEEKDATA or PTRACE_PEEKTEXT,
+			 * Printing the address is the best I can do.
+			 */
 		case VOID_POINTER:
 		case STRUCT:
 		case POINTER:
 			fprintf(stderr, "%p", (void *)regval);
-			break;
-		case STRING:
-//			str = (void *)regval;
-			fprintf(stderr, "%s %zu", (char *)((char*)regval + 56), strlen((char *)regval));
-//			fprintf(stderr, "pointer: %p, string: %s, mine: %s\n", (void *)regval, (char *)regval, str);
 			break;
 		case SSIZE_T:
 			fprintf(stderr, "%zd", (ssize_t)regval);
