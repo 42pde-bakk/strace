@@ -8,6 +8,7 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <sys/ptrace.h>
+#include <linux/ptrace.h>
 #include <stdlib.h>
 #include <sys/wait.h>
 #include <sys/user.h>
@@ -99,25 +100,35 @@ int	next_syscall(const pid_t child_pid) {
 			perror("PTRACE_SYSCALL2");
 			return (EXIT_FAILURE);
 		}
-		if (wait_and_check_status(child_pid)) {
-			break ;
-		}
+		int should_break = wait_and_check_status(child_pid);
+//		if (wait_and_check_status(child_pid)) {
+//			break ;
+//		}
 //		waitpid(child_pid, 0, 0);
 
-		ret = ptrace(PTRACE_GETREGS, child_pid, 0, &regs);
+		ret = ptrace(PTRACE_GETREGSET, child_pid, NT_PRSTATUS, &iov);
+
+//		struct ptrace_syscall_info buf;
+//		ptrace(PTRACE_GET_SYSCALL_INFO, child_pid, sizeof(buf), &buf);
+
+//		fprintf(stderr, "\tis_error: %hhd , return value: %lld\t", buf.exit.is_error, buf.exit.rval);
+
 		if (ret) {
-			perror("PTRACE_GETREGS2");
-			return (EXIT_FAILURE);
+			fprintf(stderr, " = ?\n");
+//			perror("PTRACE_GETREGS2");
+//			return (EXIT_FAILURE);
+			break ;
 		}
 
 		print_syscall_return_value(&regs, syscall);
+		if (should_break)
+			break ;
 	}
 
 	return (EXIT_SUCCESS);
 }
 
 int start_tracing(pid_t child_pid) {
-
 	if (init_tracing(child_pid))
 		return (EXIT_FAILURE);
 

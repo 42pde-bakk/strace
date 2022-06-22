@@ -7,8 +7,11 @@
 #include <sys/user.h>
 #include <stdio.h>
 #include <string.h>
+#include <errno.h>
 
 #include <fcntl.h>
+#include <assert.h>
+
 int g_filefd = -1;
 static void	switch_case(const e_syscall_type eSyscallType, const unsigned long long int regval) {
 	if (g_filefd == -1)
@@ -86,7 +89,12 @@ void	print_syscall_return_value(struct user_regs_struct *regs, const unsigned lo
 	const t_syscall syscall = syscalls[syscallNb];
 
 	fprintf(stderr, " = ");
-	switch_case(syscall.return_value, regs->rax);
+	const int child_errno_nb = -1 * (int)regs->rax;
+	if ((int)regs->rax < 0 && syscall.return_value != VOID && child_errno_nb <= MAX_ERRNO_NB) {
+		t_errno child_errno = errnoTable[child_errno_nb];
+		fprintf(stderr, "%d %s %s", -1, child_errno.code, child_errno.description);
+	} else {
+		switch_case(syscall.return_value, regs->rax);
+	}
 	fprintf(stderr, "\n");
-//	fprintf(stderr, "nb64 = %llu, orig_rax = %llu\n", regs->nb64, regs->orig_rax);
 }
