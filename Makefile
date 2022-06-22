@@ -29,16 +29,16 @@ export DEBUG
 
 all: $(NAME)
 
-$(NAME): directories $(OBJS) $(HEADER)
+$(NAME): $(OBJS) $(HEADER)
 	$(CC) $(CFLAGS) $(INCLUDE) $(OBJS) -o $@
 	@printf "$(PINK)Done building $(NAME) $(RESET)\n"
 
 directories:
 	mkdir -p $(OBJ_DIR)
 
-
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.c
-	$(CC) -c $(CFLAGS) $(INCLUDE) $^ -o $@
+	@$(MAKE) -s directories
+	$(CC) -c $(CFLAGS) $(INCLUDE) $< -o $@
 
 clean:
 	/bin/rm -f $(OBJS)
