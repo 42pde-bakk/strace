@@ -20,5 +20,10 @@ void	catch_sigint(int signal);
 int	init_tracing(pid_t child_pid);
 int start_tracing(pid_t child_pid);
 
+/*
+ * srcs/path_management.c
+ */
+char	*get_absolute_path(const char* arg, const char **envp);
+
 
 #endif //STRACE_STRACE_H

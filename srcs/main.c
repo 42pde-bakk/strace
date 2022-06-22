@@ -5,6 +5,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "strace.h"
+#include <string.h>
+#include <errno.h>
 
 int execute_child(char **argv) {
 	int		res;
@@ -17,13 +19,20 @@ int execute_child(char **argv) {
 	return (res);
 }
 
-int main(int argc, char **argv) {
+int main(int argc, char **argv, const char **envp) {
 	pid_t	child;
+	char	*abspath;
 
 	if (argc < 2) {
 		fprintf(stderr, "Usage: %s program_name [arguments]\n", argv[0]);
 		return (EXIT_FAILURE);
 	}
+	abspath = get_absolute_path(argv[1], envp);
+	if (abspath == NULL) {
+		fprintf(stderr, "ft_strace: Can't stat '%s': %s\n", argv[1], strerror(errno));
+		return (EXIT_FAILURE);
+	}
+	argv[1] = abspath;
 	child = fork();
 	if (child == -1) {
 		perror("fork");
@@ -32,5 +41,6 @@ int main(int argc, char **argv) {
 	if (child == 0) {
 		return (execute_child(argv));
 	}
+	free(abspath);
 	return (start_tracing(child));
 }

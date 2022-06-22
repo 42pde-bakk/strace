@@ -1,6 +1,6 @@
 NAME = ft_strace
-INCLUDE = -Iinclude
-HEADER = include/strace.h
+INCLUDE = -Iinclude -Ilibft/include
+HEADER = include/strace.h libft/include/libft.h
 
 SRC_DIR = ./srcs
 OBJ_DIR = ./obj
@@ -9,6 +9,8 @@ OBJ_EXT = o
 SRCS = $(wildcard $(SRC_DIR)/*.c)
 OBJECTSS = $(SRCS:.c=.o)
 OBJS = $(patsubst $(SRC_DIR)/%,$(OBJ_DIR)/%,$(OBJECTSS))
+
+LIBS = libft.a
 
 # COLORS
 PINK = \x1b[35;01m
@@ -29,9 +31,12 @@ export DEBUG
 
 all: $(NAME)
 
-$(NAME): $(OBJS) $(HEADER)
-	$(CC) $(CFLAGS) $(INCLUDE) $(OBJS) -o $@
+$(NAME): $(LIBS) $(OBJS) $(HEADER)
+	$(CC) $(CFLAGS) $(INCLUDE) $(OBJS) $(LIBS) -o $@
 	@printf "$(PINK)Done building $(NAME) $(RESET)\n"
+
+%.a: %
+	$(MAKE) -C $< && cp $</$@ .
 
 directories:
 	mkdir -p $(OBJ_DIR)

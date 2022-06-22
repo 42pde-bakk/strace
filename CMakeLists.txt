@@ -9,4 +9,5 @@ file(GLOB SOURCE_FILES "srcs/*.c")
 file(GLOB HEADER_FILES "include/*.h")
 
 add_executable(strace ${SOURCE_FILES} ${HEADER_FILES})
-include_directories(include)
+add_subdirectory(libft)
+include_directories(include libft/include)
