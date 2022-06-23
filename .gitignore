@@ -55,3 +55,4 @@ cmake-build-debug*/
 .vs/
 .vscode/
 ft_strace
+syscalls.txt
