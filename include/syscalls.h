@@ -6,6 +6,7 @@
 #define STRACE_SYSCALLS_H
 //#include <sys/syscall.h>
 #include <sys/user.h>
+#include <stdlib.h>
 #define MAX_SYSCALL_NB 334
 
 typedef enum syscall_type {
