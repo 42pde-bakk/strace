@@ -22,7 +22,10 @@ typedef enum syscall_type {
 	LONG_INT,
 	FLAGS,
 	VOID_POINTER,
-	STRING_ARRAY
+	STRING_ARRAY,
+	E_PTRACE_REQUEST,
+	UNSIGNED_LONG_LONG_INT,
+	LONG_LONG_INT
 }	e_syscall_type;
 
 typedef struct s_syscall {
@@ -41,7 +44,7 @@ typedef struct s_syscall {
 	};
 }	t_syscall;
 
-extern t_syscall syscalls[];
+extern const t_syscall syscalls[];
 
 /*
  * srcs/print_syscall.c

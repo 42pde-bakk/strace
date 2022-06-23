@@ -1,30 +1,40 @@
-import json
-
-
 def parse_syscalls():
+    enum_converts = {
+        'T_INT': 'INT',
+        'T_ADDR': 'POINTER',
+        'T_HEX': 'INT',
+        'T_LINT': 'LONG_INT',
+        'T_NONE': 'NONE',
+        'T_ULINT': 'UNSIGNED_LONG_INT',
+        'T_STR': 'STRING',
+        'T_E_PTRACE_REQUEST': 'E_PTRACE_REQUEST',
+        'T_UNKNOWN': 'INT',
+        'T_UINT': 'UNSIGNED_INT',
+        'T_CADDR_T': 'POINTER',
+        'T_LLINT': 'LONG_LONG_INT',
+        'T_ULLINT': 'UNSIGNED_LONG_LONG_INT',
+        'T_BUFF': 'VOID_POINTER'
+    }
     # https://raw.githubusercontent.com/vsteffen/ft_strace/master/includes/syscall_tables/syscall64.h
     lines = open('syscalls.txt', 'r').read().splitlines()
-    with open('/Users/pde-bakk/CLionProjects/strace/srcs/syscall_table.c', 'w') as f:
+    with open('srcs/syscall_table.c', 'w') as f:
         f.write('#include "syscalls.h"\n\n')
-        f.write('t_syscall syscalls[] = {\n')
+        f.write('const t_syscall syscalls[] = {\n')
         for line in lines:
             nb, item = line.split(' = ')
-            nb = nb.strip('[').strip(']')
+            nb = int(nb.strip('[').strip(']'))
             print(nb)
             item = item.replace('{', '').replace('}', '').replace(',', '')
+            for k, v in enum_converts.items():
+                item = item.replace(k, v)
             arr = item.split()
             name = arr[0]
             registers = arr[1:-2]
             return_value = arr[-2]
-            handler = arr[-1]
             print(name)
             print(registers)
-            print(handler)
             registers_str = ', '.join(registers)
-            f.write(f'\t\t[{nb}] = {{ .nb64 = {nb}, .return_value = {return_value}, .name = {name}, {registers_str} }},\n')
-            # item = item.replace('T_INT', 'INT').replace('T_NONE', 'NONE')
-            # nb, code, description = line.split('\t')
-            # f.write(f'\t\t[{nb}] = {{ .nb = {nb}, .code = "{code}", .description = "{description}" }},\n')
+            f.write(f'\t\t[{nb}] = {{ .nb64 = {nb}, .return_value = {return_value}, .name = {name}, .registers = {{{registers_str} }} }},\n')
         f.write('};\n')
 
 
