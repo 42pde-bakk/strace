@@ -14,6 +14,8 @@
 #include <sys/user.h>
 #include <string.h>
 #include <unistd.h>
+# include <sys/uio.h>
+#include <elf.h>
 
 int	init_tracing(const pid_t child_pid) {
 	int status;
@@ -33,15 +35,7 @@ int	init_tracing(const pid_t child_pid) {
 	return (EXIT_SUCCESS);
 }
 
-int	wait_and_check_status(const pid_t child_pid) {
-	int wait_ret;
-	int status;
-
-	wait_ret = waitpid(child_pid, &status, WUNTRACED);
-	if (wait_ret == -1) {
-		perror("waitpid");
-		return (1);
-	}
+static int	print_status(int status) {
 	if (WIFEXITED(status)) {
 		fprintf(stderr, "+++ exited with %d +++\n", WEXITSTATUS(status));
 		return (1);
@@ -50,18 +44,12 @@ int	wait_and_check_status(const pid_t child_pid) {
 		fprintf(stderr,"+++ killed by signal +++\n");
 		return (1);
 	}
-//	if (WIFSTOPPED(status)) {
-//		fprintf(stderr, "+++ stopped +++ \n");
-//		return (1);
-//	}
-
 	return (0);
 }
-# include <sys/uio.h>
-#include <elf.h>
 
 int	next_syscall(const pid_t child_pid) {
 	struct user_regs_struct regs;
+	int	status = 0;
 	long ret;
 	struct iovec iov = {
 			.iov_base = &regs,
@@ -70,7 +58,6 @@ int	next_syscall(const pid_t child_pid) {
 	bool isAlive = true;
 
 	ptrace(PTRACE_SETOPTIONS, child_pid, 0, PTRACE_O_EXITKILL);
-
 	while (isAlive) {
 		ret = ptrace(PTRACE_SYSCALL, child_pid, 0, 0);
 		if (ret) {
@@ -78,51 +65,37 @@ int	next_syscall(const pid_t child_pid) {
 			return (EXIT_FAILURE);
 		}
 
-		if (wait_and_check_status(child_pid)) {
+		if (waitpid(child_pid, &status, WUNTRACED) == -1) {
 			break ;
 		}
-//		waitpid(child_pid, 0, 0);
 
-//		ret = ptrace(PTRACE_GETREGS, child_pid, 0, &regs);
 		ret = ptrace(PTRACE_GETREGSET, child_pid, NT_PRSTATUS, &iov);
 		if (ret) {
 			perror("PTRACE_GETREGS1");
 			return (EXIT_FAILURE);
 		}
 
-		print_syscall(&regs);
-
-		unsigned long long int syscall = regs.orig_rax;
-
+		handle_syscall(&regs);
+//		unsigned long long int syscall = regs.orig_rax;
 
 		ret = ptrace(PTRACE_SYSCALL, child_pid, 0, 0);
 		if (ret) {
 			perror("PTRACE_SYSCALL2");
 			return (EXIT_FAILURE);
 		}
-		int should_break = wait_and_check_status(child_pid);
-//		if (wait_and_check_status(child_pid)) {
-//			break ;
-//		}
-//		waitpid(child_pid, 0, 0);
-
-		ret = ptrace(PTRACE_GETREGSET, child_pid, NT_PRSTATUS, &iov);
-
-//		struct ptrace_syscall_info buf;
-//		ptrace(PTRACE_GET_SYSCALL_INFO, child_pid, sizeof(buf), &buf);
-
-//		fprintf(stderr, "\tis_error: %hhd , return value: %lld\t", buf.exit.is_error, buf.exit.rval);
-
-		if (ret) {
-			fprintf(stderr, " = ?\n");
-//			perror("PTRACE_GETREGS2");
-//			return (EXIT_FAILURE);
+		if (waitpid(child_pid, &status, WUNTRACED) == -1) {
 			break ;
 		}
 
-		print_syscall_return_value(&regs, syscall);
-		if (should_break)
+		ptrace(PTRACE_GETREGSET, child_pid, NT_PRSTATUS, &iov);
+
+		if (WIFSIGNALED(status) || WIFEXITED(status)) {
+			fprintf(stderr, " = ?\n");
+			print_status(status);
 			break ;
+		}
+
+		print_syscall_return_value(&regs);
 	}
 
 	return (EXIT_SUCCESS);

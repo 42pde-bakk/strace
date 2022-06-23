@@ -34,7 +34,17 @@ def parse_syscalls():
             print(name)
             print(registers)
             registers_str = ', '.join(registers)
-            f.write(f'\t\t[{nb}] = {{ .nb64 = {nb}, .return_value = {return_value}, .name = {name}, .registers = {{{registers_str} }} }},\n')
+            f.write(f'\t\t[{nb}] = {{')
+            f.write(f' .nb64 = {nb}, ')
+            f.write(f' .return_value = {return_value}, ')
+            f.write(f' .name = {name}, ')
+            f.write(f' .registers = {{ {registers_str} }}, ')
+            stripped_name = name.strip('"')
+            if stripped_name in ['mmap', 'ptrace']:
+                f.write(f' .handler = &{stripped_name}_handler')
+            else:
+                f.write(f'.handler = &print_syscall')
+            f.write('},\n')
         f.write('};\n')
 
 

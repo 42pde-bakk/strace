@@ -7,16 +7,8 @@
 #include <sys/user.h>
 #include <stdio.h>
 #include <string.h>
-#include <errno.h>
 
-#include <fcntl.h>
-#include <assert.h>
-
-int g_filefd = -1;
 static void	switch_case(const e_syscall_type eSyscallType, const unsigned long long int regval) {
-	if (g_filefd == -1)
-		g_filefd = open("debug.txt", O_WRONLY , 0644);
-
 	switch (eSyscallType) {
 		case FLAGS:
 		case INT:
@@ -54,7 +46,25 @@ static void	switch_case(const e_syscall_type eSyscallType, const unsigned long l
 	}
 }
 
-void	print_syscall(struct user_regs_struct *regs) {
+void	mmap_handler(const struct user_regs_struct *regs) {
+	const t_syscall syscal_mmap = syscalls[9];
+	fprintf(stderr, "\t prot=%llu, flags=%llu\t", regs->rdx, regs->r10);
+	fprintf(stderr, "%s(%p, %zu, ", syscal_mmap.name, (void *)regs->rdi, (size_t)regs->rsi);
+	mmap_handle_prots(regs->rdx);
+	fprintf(stderr, ", ");
+	mmap_handle_flags(regs->r10);
+	fprintf(stderr, ", %d, %ld)", (int)regs->r8, (long int)regs->r9);
+//	exit(1);
+}
+
+void	ptrace_handler(const struct user_regs_struct *regs) {
+	const t_syscall syscall_ptrace = syscalls[101];
+	fprintf(stderr, "%s(", syscall_ptrace.name);
+	enum__ptrace_request_handler(regs->rdi);
+	fprintf(stderr, ", %d, %p, %p)", (int)regs->rsi, (void *)regs->rdx, (void *)regs->r10);
+}
+
+void	print_syscall(const struct user_regs_struct *regs) {
 	unsigned long long int syscall_nb = regs->orig_rax;
 
 	const unsigned long long int registers[6] = {
@@ -81,7 +91,15 @@ void	print_syscall(struct user_regs_struct *regs) {
 	fprintf(stderr, ")");
 }
 
-void	print_syscall_return_value(struct user_regs_struct *regs, const unsigned long long int syscallNb) {
+void	handle_syscall(const struct user_regs_struct *regs) {
+	const unsigned long long int syscall_nb = regs->orig_rax;
+	const t_syscall syscall = syscalls[syscall_nb];
+
+	return syscall.handler(regs);
+}
+
+void print_syscall_return_value(struct user_regs_struct *regs) {
+	const unsigned long long int syscallNb = regs->orig_rax;
 	if (syscallNb > MAX_SYSCALL_NB) {
 		fprintf(stderr, " = %llu\n", regs->rax);
 		return ;

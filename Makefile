@@ -21,7 +21,7 @@ RED = \x1b[31;01m
 WHITE = \x1b[31;37m
 RESET = \x1b[0m
 
-CFLAGS = -Wall -Werror -Wextra -std=c11 -Wno-missing-braces
+CFLAGS = -Wall -Werror -Wextra -Wno-missing-braces
 ifdef DEBUG
  CFLAGS += -g3 -fsanitize=address
 endif
@@ -48,8 +48,10 @@ $(OBJ_DIR)/%.o: $(SRC_DIR)/%.c
 clean:
 	/bin/rm -f $(OBJS)
 	@/bin/rm -f *.o *~ *.gch
+	$(MAKE) clean -C libft
 
 fclean: clean
 	/bin/rm -f $(NAME)
+	$(MAKE) fclean -C libft
 
 re: fclean all

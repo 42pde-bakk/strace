@@ -5,6 +5,7 @@
 #include <string.h>
 #include <unistd.h>
 #include "libft.h"
+#include <stdio.h>
 
 #define PATH_PREFIX "PATH="
 
@@ -26,13 +27,14 @@ static char	*ft_str3join(const char *a, const char *b, const char *c)
 	size_t	len_a = ft_strlen(a),
 			len_b = ft_strlen(b),
 			len_c = ft_strlen(c);
+	size_t	total_length = len_a + len_b + len_c + 1;
 
-	out = ft_calloc(len_a + len_b + len_b + 1, sizeof(char));
+	out = ft_calloc(total_length, sizeof(char));
 	if (out == NULL)
 		return (NULL);
-	ft_strlcpy(out, a, len_a + 1);
-	ft_strlcpy(out + len_a, b, len_b + 1);
-	ft_strlcpy(out + len_a + len_b, c, len_c + 1);
+	strcpy(out, a);
+	strcpy(out + len_a, b);
+	strcpy(out + len_a + len_b, c);
 	return (out);
 }
 
@@ -42,6 +44,7 @@ static void	free_array(char **arr) {
 	while (arr[i]) {
 		free(arr[i]);
 		arr[i] = NULL;
+		i++;
 	}
 	free(arr);
 }
@@ -54,18 +57,23 @@ static char	*get_abspath(const char *PATH_with_prefix, const char *arg) {
 		return (NULL);
 	char	**path_split = ft_split(PATH, ':');
 
-	if (path_split == NULL)
+	if (path_split == NULL) {
+		free(PATH);
 		return (NULL);
+	}
 	while (path_split[i]) {
 		combined_path = ft_str3join(path_split[i], "/", arg);
 		if (combined_path && access(combined_path, F_OK | X_OK) == 0) {
 			free_array(path_split);
+			free(PATH);
 			return (combined_path);
 		}
 		free(combined_path);
+		combined_path = NULL;
 		i++;
 	}
 	free_array(path_split);
+	free(PATH);
 	return (NULL);
 }
 
