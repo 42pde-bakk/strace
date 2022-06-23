@@ -14,7 +14,7 @@
 #include <sys/user.h>
 #include <string.h>
 #include <unistd.h>
-# include <sys/uio.h>
+#include <sys/uio.h>
 #include <elf.h>
 
 int	init_tracing(const pid_t child_pid) {
@@ -75,8 +75,7 @@ int	next_syscall(const pid_t child_pid) {
 			return (EXIT_FAILURE);
 		}
 
-		handle_syscall(&regs);
-//		unsigned long long int syscall = regs.orig_rax;
+		handle_syscall(&regs, child_pid);
 
 		ret = ptrace(PTRACE_SYSCALL, child_pid, 0, 0);
 		if (ret) {
@@ -97,7 +96,6 @@ int	next_syscall(const pid_t child_pid) {
 
 		print_syscall_return_value(&regs);
 	}
-
 	return (EXIT_SUCCESS);
 }
 

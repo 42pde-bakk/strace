@@ -52,8 +52,8 @@ extern const t_syscall syscalls[];
 /*
  * srcs/print_syscall.c
  */
+void	handle_syscall(const struct user_regs_struct *regs, pid_t child_pid);
 void	print_syscall(const struct user_regs_struct *regs);
-void	handle_syscall(const struct user_regs_struct *regs);
 void	ptrace_handler(const struct user_regs_struct *regs);
 void	mmap_handler(const struct user_regs_struct *regs);
 void print_syscall_return_value(struct user_regs_struct *regs);
