@@ -8,6 +8,8 @@
 #include <string.h>
 #include <errno.h>
 
+pid_t	g_childpid = -1;
+
 int execute_child(char **argv, char *abspath) {
 	int		res;
 	char	**cmds;
@@ -21,7 +23,7 @@ int execute_child(char **argv, char *abspath) {
 }
 
 int main(int argc, char **argv, const char **envp) {
-	pid_t	child;
+//	pid_t	child;
 	char	*abspath;
 
 	if (argc < 2) {
@@ -33,14 +35,15 @@ int main(int argc, char **argv, const char **envp) {
 		fprintf(stderr, "ft_strace: Can't stat '%s': %s\n", argv[1], strerror(errno));
 		return (EXIT_FAILURE);
 	}
-	child = fork();
-	if (child == -1) {
+	g_childpid = fork();
+	if (g_childpid == -1) {
 		perror("fork");
 		return (EXIT_FAILURE);
 	}
-	if (child == 0) {
+	if (g_childpid == 0) {
 		return (execute_child(argv, abspath));
 	}
+	setup_sighandlers();
 	free(abspath);
-	return (start_tracing(child));
+	return (start_tracing());
 }

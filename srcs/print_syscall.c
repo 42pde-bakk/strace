@@ -20,7 +20,6 @@ size_t	array_length(char **arr) {
 	return (i);
 }
 
-static int g_childpid = -1;
 static void	read_string(unsigned long long regval) {
 	char buf[1024];
 	long int ret;
@@ -134,7 +133,7 @@ void	print_syscall(const struct user_regs_struct *regs) {
 			regs->r10, regs->r8, regs->r9
 	};
 	if (syscall_nb > MAX_SYSCALL_NB) {
-		fprintf(stderr, "%llu(%llu, %llu, %llu, %llu, %llu, %llu)",
+		fprintf(stderr, "syscall_%llubad(%llx, %llx, %llx, %llx, %llx, %llx)",
 				syscall_nb,
 				regs->rdi, regs->rsi, regs->rdx,
 				regs->r10, regs->r8, regs->r9);
@@ -161,6 +160,18 @@ void	handle_syscall(const struct user_regs_struct *regs, const pid_t child_pid) 
 	return syscall.handler(regs);
 }
 
+int	check_and_print_errno(const struct user_regs_struct *regs) {
+	const t_syscall syscall = syscalls[regs->orig_rax];
+	const int child_errno_nb = -1 * (int)regs->rax;
+
+	if ((int)regs->rax < 0 && (syscall.return_value != VOID && syscall.return_value != NONE) && child_errno_nb <= MAX_ERRNO_NB) {
+		t_errno child_errno = errnoTable[child_errno_nb];
+		fprintf(stderr, "%d %s (%s)", -1, child_errno.code, child_errno.description);
+		return (1);
+	}
+	return (0);
+}
+
 void print_syscall_return_value(struct user_regs_struct *regs) {
 	const unsigned long long int syscallNb = regs->orig_rax;
 	if (syscallNb > MAX_SYSCALL_NB) {
@@ -170,11 +181,7 @@ void print_syscall_return_value(struct user_regs_struct *regs) {
 	const t_syscall syscall = syscalls[syscallNb];
 
 	fprintf(stderr, " = ");
-	const int child_errno_nb = -1 * (int)regs->rax;
-	if ((int)regs->rax < 0 && syscall.return_value != VOID && child_errno_nb <= MAX_ERRNO_NB) {
-		t_errno child_errno = errnoTable[child_errno_nb];
-		fprintf(stderr, "%d %s (%s)", -1, child_errno.code, child_errno.description);
-	} else {
+	if (check_and_print_errno(regs) == 0) {
 		switch_case(syscall.return_value, regs->rax);
 	}
 	fprintf(stderr, "\n");

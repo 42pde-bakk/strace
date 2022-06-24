@@ -17,17 +17,17 @@
 #include <sys/uio.h>
 #include <elf.h>
 
-int	init_tracing(const pid_t child_pid) {
+int	init_tracing() {
 	int status;
 	long ret;
 
-	ret = ptrace(PTRACE_SEIZE, child_pid, NULL, NULL);
+	ret = ptrace(PTRACE_SEIZE, g_childpid, NULL, NULL);
 	if (ret == -1)
 		perror("PTRACE_SEIZE");
-	ret = ptrace(PTRACE_INTERRUPT, child_pid, NULL, NULL);
+	ret = ptrace(PTRACE_INTERRUPT, g_childpid, NULL, NULL);
 	if (ret == -1)
 		perror("PTRACE_INTERRUPT");
-	if (waitpid(child_pid, &status, WUNTRACED) == -1)
+	if (waitpid(g_childpid, &status, WUNTRACED) == -1)
 	{
 		perror("waitpid");
 		return (EXIT_FAILURE);
@@ -85,11 +85,13 @@ int	next_syscall(const pid_t child_pid) {
 		if (waitpid(child_pid, &status, WUNTRACED) == -1) {
 			break ;
 		}
+		check_detached(&regs);
 
 		ptrace(PTRACE_GETREGSET, child_pid, NT_PRSTATUS, &iov);
 
 		if (WIFSIGNALED(status) || WIFEXITED(status)) {
 			fprintf(stderr, " = ?\n");
+			check_and_print_errno(&regs);
 			print_status(status);
 			break ;
 		}
@@ -99,11 +101,11 @@ int	next_syscall(const pid_t child_pid) {
 	return (EXIT_SUCCESS);
 }
 
-int start_tracing(pid_t child_pid) {
-	if (init_tracing(child_pid))
+int start_tracing() {
+	if (init_tracing(g_childpid))
 		return (EXIT_FAILURE);
 
-	next_syscall(child_pid);
-	close(child_pid);
+	next_syscall(g_childpid);
+	close(g_childpid);
 	return (EXIT_SUCCESS);
 }

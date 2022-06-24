@@ -17,16 +17,18 @@ typedef struct s_errno {
 }	t_errno;
 extern t_errno	errnoTable[];
 
+extern pid_t g_childpid;
 /*
  * srcs/signal.c
  */
-void	catch_sigint(int signal);
+void	setup_sighandlers();
+void check_detached(const struct user_regs_struct *regs);
 
 /*
  * srcs/tracing.c
  */
-int	init_tracing(pid_t child_pid);
-int start_tracing(pid_t child_pid);
+int	init_tracing();
+int start_tracing();
 
 /*
  * srcs/path_management.c
