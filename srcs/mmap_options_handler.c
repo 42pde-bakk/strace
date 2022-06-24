@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <sys/mman.h>
+#include "syscalls.h"
 
 typedef struct s_mmap_option {
 	unsigned int	value;

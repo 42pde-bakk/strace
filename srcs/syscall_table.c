@@ -60,7 +60,7 @@ const t_syscall syscalls[] = {
 		[56] = { .nb64 = 56,  .return_value = INT,  .name = "clone",  .registers = { POINTER, POINTER, INT, POINTER, NONE, NONE }, .handler = &print_syscall},
 		[57] = { .nb64 = 57,  .return_value = INT,  .name = "fork",  .registers = { NONE, NONE, NONE, NONE, NONE, NONE }, .handler = &print_syscall},
 		[58] = { .nb64 = 58,  .return_value = INT,  .name = "vfork",  .registers = { NONE, NONE, NONE, NONE, NONE, NONE }, .handler = &print_syscall},
-		[59] = { .nb64 = 59,  .return_value = INT,  .name = "execve",  .registers = { STRING, STRING_ARRAY, POINTER, NONE, NONE, NONE }, .handler = &print_syscall},
+		[59] = { .nb64 = 59,  .return_value = INT,  .name = "execve",  .registers = { STRING, STRING_ARRAY, STRING_ARRAY, NONE, NONE, NONE }, .handler = &print_syscall},
 		[60] = { .nb64 = 60,  .return_value = NONE,  .name = "exit",  .registers = { INT, NONE, NONE, NONE, NONE, NONE }, .handler = &print_syscall},
 		[61] = { .nb64 = 61,  .return_value = INT,  .name = "wait4",  .registers = { INT, POINTER, INT, POINTER, NONE, NONE }, .handler = &print_syscall},
 		[62] = { .nb64 = 62,  .return_value = INT,  .name = "kill",  .registers = { INT, INT, NONE, NONE, NONE, NONE }, .handler = &print_syscall},

@@ -10,6 +10,16 @@
 #include <sys/ptrace.h>
 #include <errno.h>
 
+size_t	array_length(char **arr) {
+	size_t i = 0;
+
+	if (!arr)
+		return (0);
+	while (arr[i])
+		++i;
+	return (i);
+}
+
 static int g_childpid = -1;
 static void	read_string(unsigned long long regval) {
 	char buf[1024];
@@ -27,7 +37,28 @@ static void	read_string(unsigned long long regval) {
 			break ;
 		i++;
 	}
-	fprintf(stderr, "%s", buf);
+	fprintf(stderr, "\"%s\"", buf);
+}
+#define MAX_VARS 5
+static void	read_string_array(unsigned long long regval) {
+	size_t	len,
+			i = 0;
+	char	**string_array;
+
+	string_array = (char **)regval;
+	len = array_length(string_array);
+	if (len > MAX_VARS) {
+		fprintf(stderr, "%p /* %zu vars */", string_array, len);
+		return ;
+	}
+	fprintf(stderr, "[");
+	while (string_array[i]) {
+		if (i)
+			fprintf(stderr, ", ");
+		read_string((unsigned long long)string_array[i]);
+		++i;
+	}
+	fprintf(stderr, "]");
 }
 
 static void	switch_case(const e_syscall_type eSyscallType, const unsigned long long int regval) {
@@ -43,18 +74,23 @@ static void	switch_case(const e_syscall_type eSyscallType, const unsigned long l
 			fprintf(stderr, "%zu", (size_t)regval);
 			break;
 		case STRING_ARRAY:
+			read_string_array(regval);
+			break ;
 		case STRING:
 			/*
-			 * I'd love to actually print the string,
-			 * But since we aren't allowed to use PTRACE_PEEKDATA or PTRACE_PEEKTEXT,
-			 * Printing the address is the best I can do.
+			 * Even though the subject doesn't allow the use of PTRACE_PEEKDATA or PTRACE_PEEKTEXT,
+			 * we need those functions to print strings.
+			 * Otherwise, the best we can do is to only print their address.
 			 */
 			read_string(regval);
 			break ;
 		case VOID_POINTER:
 		case STRUCT:
 		case POINTER:
-			fprintf(stderr, "%p", (void *)regval);
+			if (regval == 0)
+				fprintf(stderr, "NULL");
+			else
+				fprintf(stderr, "%p", (void *)regval);
 			break;
 		case SSIZE_T:
 			fprintf(stderr, "%zd", (ssize_t)regval);
@@ -72,8 +108,10 @@ static void	switch_case(const e_syscall_type eSyscallType, const unsigned long l
 
 void	mmap_handler(const struct user_regs_struct *regs) {
 	const t_syscall syscal_mmap = syscalls[9];
-	fprintf(stderr, "\t prot=%llu, flags=%llu\t", regs->rdx, regs->r10);
-	fprintf(stderr, "%s(%p, %zu, ", syscal_mmap.name, (void *)regs->rdi, (size_t)regs->rsi);
+	fprintf(stderr, "%s(", syscal_mmap.name);
+	switch_case(syscal_mmap.rdi, regs->rdi);
+
+	fprintf(stderr, ", %zu, ", (size_t)regs->rsi);
 	mmap_handle_prots(regs->rdx);
 	fprintf(stderr, ", ");
 	mmap_handle_flags(regs->r10);
@@ -135,7 +173,7 @@ void print_syscall_return_value(struct user_regs_struct *regs) {
 	const int child_errno_nb = -1 * (int)regs->rax;
 	if ((int)regs->rax < 0 && syscall.return_value != VOID && child_errno_nb <= MAX_ERRNO_NB) {
 		t_errno child_errno = errnoTable[child_errno_nb];
-		fprintf(stderr, "%d %s %s", -1, child_errno.code, child_errno.description);
+		fprintf(stderr, "%d %s (%s)", -1, child_errno.code, child_errno.description);
 	} else {
 		switch_case(syscall.return_value, regs->rax);
 	}
