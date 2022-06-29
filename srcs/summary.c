@@ -6,10 +6,39 @@
 #include <string.h>
 #include <stdio.h>
 
+typedef enum {
+	TIME_PERCENTAGE = 0,
+	TOTALSECONDS = 1,
+	USECS_PER_CALL = 2,
+	CALLS = 3,
+	ERRORS = 4,
+	SYSCALL_NAME = 5
+}	e_column;
+
+static const char *sep = "------------------------------------------------";
+static const char *headers[] = {
+		"% time", "seconds", "usecs/call", "calls", "errors", "syscall"
+};
+static const char *footers[] = {
+		"100.00", "total"
+};
+static size_t	column_widths[] = {
+		6, 11, 11, 9, 9, 7
+};
+
+static size_t	max(const size_t a, const size_t b) {
+	return ((a > b) ? a : b);
+}
+
 static size_t	count_used_syscalls() {
 	size_t amount = 0;
 
 	for (size_t i = 0; i <= MAX_SYSCALL_NB; i++) {
+		fprintf(stderr, "i = %zu\n", i);
+		fprintf(stderr, "addr: %p\n", (void *)&syscalls[i]);
+		fprintf(stderr, "name = %s\n", syscalls[i].name);
+		fprintf(stderr, "addr of summary: %p\n", (void *)&syscalls[i].summary);
+		fprintf(stderr, "calls: %zu\n", syscalls[i].summary.calls);
 		if (syscalls[i].summary.calls > 0)
 			amount++;
 	}
@@ -21,24 +50,40 @@ static void	populate_list(t_summary *summaries[]) {
 	for (size_t i = 0; i < MAX_SYSCALL_NB + 1; i++) {
 		if (syscalls[i].summary.calls > 0) {
 			summaries[n] = &syscalls[i].summary;
+			column_widths[SYSCALL_NAME] = max(column_widths[SYSCALL_NAME], strlen(syscalls[i].name));
 			n++;
 		}
 	}
 }
 
 void	print_header() {
-	fprintf(stderr, "%% time\tseconds\tusecs/call\tcalls\terrors\tsyscalls\n");
-	fprintf(stderr, "------ ----------- ----------- --------- --------- ----------------\n");
+	fprintf(stderr, "%*s %*s %*s %*s %*s %-*s\n",
+			(int)column_widths[TIME_PERCENTAGE], headers[0],
+			(int)column_widths[TOTALSECONDS], headers[1],
+			(int)column_widths[USECS_PER_CALL], headers[2],
+			(int)column_widths[CALLS], headers[3],
+			(int)column_widths[ERRORS], headers[4],
+			(int)column_widths[SYSCALL_NAME], headers[5]
+	);
+	fprintf(stderr, "%.*s %.*s %.*s %.*s %.*s %.*s\n",
+			(int)column_widths[TIME_PERCENTAGE], sep,
+			(int)column_widths[TOTALSECONDS], sep,
+			(int)column_widths[USECS_PER_CALL], sep,
+			(int)column_widths[CALLS], sep,
+			(int)column_widths[ERRORS], sep,
+			(int)column_widths[SYSCALL_NAME], sep
+	);
 }
 
 void	print_summary_syscall(const t_summary *summary, const double total_seconds) {
-	fprintf(stderr, "%f\t%f\t%zu\t%zu\t%zu\t%s\n",
-			summary->seconds / total_seconds * 100,
-			summary->seconds,
-			(size_t)(summary->seconds * 100000 / summary->calls),
-			summary->calls,
-			summary->errors,
-			syscalls[summary->syscallNb].name);
+	fprintf(stderr, "%*.*f %*f %*zu %*zu %*.0zu %-*s\n",
+			(int)column_widths[TIME_PERCENTAGE], 2, summary->seconds / total_seconds * 100,
+			(int)column_widths[TOTALSECONDS], summary->seconds,
+			(int)column_widths[USECS_PER_CALL], (size_t)(summary->seconds * 1000000 / summary->calls),
+			(int)column_widths[CALLS], summary->calls,
+			(int)column_widths[ERRORS], summary->errors ,
+			(int)column_widths[SYSCALL_NAME], syscalls[summary->syscallNb].name
+	);
 }
 
 double	get_total_seconds(t_summary *summaries[]) {
@@ -62,7 +107,7 @@ void	print_footer(t_summary *summaries[]) {
 	}
 
 	fprintf(stderr, "------ ----------- ----------- --------- --------- ----------------\n");
-	fprintf(stderr, "100.00\t%f\t\t%zu\t%zu\ttotal\n", total_seconds, total_calls, total_errors);
+	fprintf(stderr, "%s\t%f\t\t%zu\t%zu\t%s\n", footers[0], total_seconds, total_calls, total_errors, footers[1]);
 }
 
 void	init_summary_structs() {
