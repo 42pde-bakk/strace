@@ -77,9 +77,6 @@ static int	next_syscall(const pid_t child_pid, const unsigned int flags) {
 			return (EXIT_FAILURE);
 		}
 
-		assert(flags == 1u);
-//		fprintf(stderr, "%u & %d = %d\n", flags, FLAG_SUMMARY_VALUE, flags & FLAG_SUMMARY_VALUE);
-
 		if (!(flags & FLAG_SUMMARY_VALUE)) {
 			handle_syscall(&regs, child_pid);
 		}
@@ -97,11 +94,8 @@ static int	next_syscall(const pid_t child_pid, const unsigned int flags) {
 
 		t_summary *summary = &syscalls[regs.orig_rax].summary;
 		double elapsed_time = measure_elapsed_time(start_time);
-//		fprintf(stderr, "1syscall: %llu\n", regs.orig_rax);
 		summary->calls++;
 		summary->seconds += elapsed_time;
-//		fprintf(stderr, "2syscall: %llu, calls = %zu\n", regs.orig_rax, summary->calls);
-
 
 		ptrace(PTRACE_GETREGSET, child_pid, NT_PRSTATUS, &iov);
 		if ((int)regs.rax < 0) {

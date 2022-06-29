@@ -5,6 +5,7 @@
 #include "syscalls.h"
 #include <string.h>
 #include <stdio.h>
+#include <locale.h>
 
 typedef enum {
 	TIME_PERCENTAGE = 0,
@@ -34,11 +35,6 @@ static size_t	count_used_syscalls() {
 	size_t amount = 0;
 
 	for (size_t i = 0; i <= MAX_SYSCALL_NB; i++) {
-		fprintf(stderr, "i = %zu\n", i);
-		fprintf(stderr, "addr: %p\n", (void *)&syscalls[i]);
-		fprintf(stderr, "name = %s\n", syscalls[i].name);
-		fprintf(stderr, "addr of summary: %p\n", (void *)&syscalls[i].summary);
-		fprintf(stderr, "calls: %zu\n", syscalls[i].summary.calls);
 		if (syscalls[i].summary.calls > 0)
 			amount++;
 	}
@@ -96,6 +92,7 @@ double	get_total_seconds(t_summary *summaries[]) {
 }
 
 void	print_footer(t_summary *summaries[]) {
+	static const char *empty = "                             ";
 	size_t	total_calls = 0;
 	size_t	total_errors = 0;
 	double	total_seconds = 0;
@@ -106,8 +103,23 @@ void	print_footer(t_summary *summaries[]) {
 		total_seconds += summaries[i]->seconds;
 	}
 
-	fprintf(stderr, "------ ----------- ----------- --------- --------- ----------------\n");
-	fprintf(stderr, "%s\t%f\t\t%zu\t%zu\t%s\n", footers[0], total_seconds, total_calls, total_errors, footers[1]);
+	fprintf(stderr, "%.*s %.*s %.*s %.*s %.*s %.*s\n",
+			(int)column_widths[TIME_PERCENTAGE], sep,
+			(int)column_widths[TOTALSECONDS], sep,
+			(int)column_widths[USECS_PER_CALL], sep,
+			(int)column_widths[CALLS], sep,
+			(int)column_widths[ERRORS], sep,
+			(int)column_widths[SYSCALL_NAME], sep
+	);
+	fprintf(stderr, "%.*s %*f %.*s %*zu %*zu %.*s\n",
+			(int)column_widths[TIME_PERCENTAGE], footers[0],
+			(int)column_widths[TOTALSECONDS], total_seconds,
+			(int)column_widths[USECS_PER_CALL], empty,
+			(int)column_widths[CALLS], total_calls,
+			(int)column_widths[ERRORS], total_errors,
+			(int)column_widths[SYSCALL_NAME], footers[1]
+	);
+//	fprintf(stderr, "%s\t%f\t\t%zu\t%zu\t%s\n", footers[0], total_seconds, total_calls, total_errors, footers[1]);
 }
 
 void	init_summary_structs() {
@@ -126,13 +138,17 @@ void	print_summary() {
 	double	total_seconds;
 	t_summary *summaries[amount + 1];
 
-	fprintf(stderr, "amount of used syscalls = %zu\n", amount);
+//	fprintf(stderr, "amount of used syscalls = %zu\n", amount);
 	init_summary_structs();
 
 	bzero(summaries, sizeof(t_summary *) * (amount + 1));
 	populate_list(summaries);
 	total_seconds = get_total_seconds(summaries);
 
+
+	sort_summaries(summaries, amount);
+
+	setlocale(LC_NUMERIC, "");
 	print_header();
 	for (size_t i = 0; summaries[i]; i++) {
 //		fprintf(stderr, "summaries[%zu] = %p\n", i, (void *)summaries[i]);

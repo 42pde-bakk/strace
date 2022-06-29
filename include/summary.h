@@ -14,4 +14,6 @@ typedef struct s_summary {
 	size_t	syscallNb;
 }	t_summary;
 
+void	sort_summaries(t_summary *summaries[], size_t amount);
+
 #endif //FT_STRACE_SUMMARY_H
