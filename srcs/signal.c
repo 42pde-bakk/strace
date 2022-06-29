@@ -37,6 +37,7 @@ void	setup_sighandlers() {
 }
 
 static void	detach(const struct user_regs_struct *regs) {
+	fprintf(stderr, "detached!\n");
 	ptrace(PTRACE_DETACH, g_childpid, 0, 0);
 	fprintf(stderr, " = ?");
 	check_and_print_errno(regs);

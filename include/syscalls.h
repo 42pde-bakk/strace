@@ -7,6 +7,7 @@
 //#include <sys/syscall.h>
 #include <sys/user.h>
 #include <stdlib.h>
+#include <summary.h>
 #define MAX_SYSCALL_NB 334
 
 typedef enum syscall_type {
@@ -32,11 +33,11 @@ typedef enum syscall_type {
 typedef void (*handler_func)(const struct user_regs_struct*);
 
 typedef struct s_syscall {
-	long int				nb64;
-	long int				nb32;
-	e_syscall_type			return_value;
-	char*					name;
-	union {
+	const long int				nb64;
+	const long int				nb32;
+	const e_syscall_type			return_value;
+	const char*					name;
+	const union {
 		e_syscall_type			registers[6];
 		e_syscall_type			rdi;		// first pa
 		e_syscall_type			rsi;		// seconde param
@@ -45,10 +46,11 @@ typedef struct s_syscall {
 		e_syscall_type			r8;			// five param
 		e_syscall_type			r9;			// six param
 	};
-	handler_func handler;
+	const handler_func handler;
+	t_summary summary;
 }	t_syscall;
 
-extern const t_syscall syscalls[];
+extern t_syscall syscalls[];
 
 /*
  * srcs/print_syscall.c

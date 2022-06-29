@@ -1,6 +1,6 @@
 #include "syscalls.h"
 
-const t_syscall syscalls[] = {
+t_syscall syscalls[] = {
 		[0] = { .nb64 = 0,  .return_value = LONG_INT,  .name = "read",  .registers = { INT, VOID_POINTER, UNSIGNED_LONG_INT, NONE, NONE, NONE }, .handler = &print_syscall},
 		[1] = { .nb64 = 1,  .return_value = LONG_INT,  .name = "write",  .registers = { INT, VOID_POINTER, UNSIGNED_LONG_INT, NONE, NONE, NONE }, .handler = &print_syscall},
 		[2] = { .nb64 = 2,  .return_value = INT,  .name = "open",  .registers = { STRING, INT, UNSIGNED_INT, NONE, NONE, NONE }, .handler = &print_syscall},
