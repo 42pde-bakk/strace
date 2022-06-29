@@ -119,7 +119,6 @@ void	print_footer(t_summary *summaries[]) {
 			(int)column_widths[ERRORS], total_errors,
 			(int)column_widths[SYSCALL_NAME], footers[1]
 	);
-//	fprintf(stderr, "%s\t%f\t\t%zu\t%zu\t%s\n", footers[0], total_seconds, total_calls, total_errors, footers[1]);
 }
 
 void	init_summary_structs() {
@@ -138,20 +137,17 @@ void	print_summary() {
 	double	total_seconds;
 	t_summary *summaries[amount + 1];
 
-//	fprintf(stderr, "amount of used syscalls = %zu\n", amount);
 	init_summary_structs();
 
 	bzero(summaries, sizeof(t_summary *) * (amount + 1));
 	populate_list(summaries);
 	total_seconds = get_total_seconds(summaries);
 
-
 	sort_summaries(summaries, amount);
 
 	setlocale(LC_NUMERIC, "");
 	print_header();
 	for (size_t i = 0; summaries[i]; i++) {
-//		fprintf(stderr, "summaries[%zu] = %p\n", i, (void *)summaries[i]);
 		print_summary_syscall(summaries[i], total_seconds);
 	}
 	print_footer(summaries);

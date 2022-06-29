@@ -27,7 +27,7 @@ extern pid_t g_childpid;
  * srcs/signal.c
  */
 void	setup_sighandlers();
-void check_detached(const struct user_regs_struct *regs);
+void check_detached(const struct user_regs_struct *regs, unsigned int flags);
 
 /*
  * srcs/tracing.c

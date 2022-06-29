@@ -90,7 +90,7 @@ static int	next_syscall(const pid_t child_pid, const unsigned int flags) {
 		if (waitpid(child_pid, &status, WUNTRACED) == -1) {
 			break ;
 		}
-		check_detached(&regs);
+		check_detached(&regs, flags);
 
 		t_summary *summary = &syscalls[regs.orig_rax].summary;
 		double elapsed_time = measure_elapsed_time(start_time);
@@ -112,7 +112,6 @@ static int	next_syscall(const pid_t child_pid, const unsigned int flags) {
 			}
 			break ;
 		}
-
 
 		if (!(flags & FLAG_SUMMARY_VALUE)) {
 			print_syscall_return_value(&regs);
