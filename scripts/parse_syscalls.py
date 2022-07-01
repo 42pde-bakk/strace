@@ -1,4 +1,6 @@
 def parse_syscalls():
+    # for execve I manually changed args 2 and 3 to be string arrays instead of just pointers
+    # ioctl's third argument is a pointer, not an int
     enum_converts = {
         'T_INT': 'INT',
         'T_ADDR': 'POINTER',
@@ -50,5 +52,3 @@ def parse_syscalls():
 
 if __name__ == '__main__':
     parse_syscalls()
-
-

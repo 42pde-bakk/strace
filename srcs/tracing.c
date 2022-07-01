@@ -16,8 +16,9 @@
 #include <unistd.h>
 #include <sys/uio.h>
 #include <elf.h>
+#include <time.h>
 
-int	init_tracing() {
+static int	init_tracing() {
 	int status;
 	long ret;
 
@@ -47,7 +48,7 @@ static int	print_status(int status) {
 	return (0);
 }
 
-int	next_syscall(const pid_t child_pid) {
+static int	next_syscall(const pid_t child_pid, const unsigned int flags) {
 	struct user_regs_struct regs;
 	int	status = 0;
 	long ret;
@@ -75,37 +76,54 @@ int	next_syscall(const pid_t child_pid) {
 			return (EXIT_FAILURE);
 		}
 
-		handle_syscall(&regs, child_pid);
+		if (!(flags & FLAG_SUMMARY_VALUE)) {
+			handle_syscall(&regs, child_pid);
+		}
 
 		ret = ptrace(PTRACE_SYSCALL, child_pid, 0, 0);
 		if (ret) {
 			perror("PTRACE_SYSCALL2");
 			return (EXIT_FAILURE);
 		}
+		const clock_t start_time = clock();
 		if (waitpid(child_pid, &status, WUNTRACED) == -1) {
 			break ;
 		}
-		check_detached(&regs);
+		check_detached(&regs, flags);
+
+		t_summary *summary = &syscalls[regs.orig_rax].summary;
+		double elapsed_time = measure_elapsed_time(start_time);
+		summary->calls++;
+		summary->seconds += elapsed_time;
 
 		ptrace(PTRACE_GETREGSET, child_pid, NT_PRSTATUS, &iov);
+		if ((int)regs.rax < 0) {
+			summary->errors++;
+		}
 
 		if (WIFSIGNALED(status) || WIFEXITED(status)) {
-			fprintf(stderr, " = ?\n");
-			check_and_print_errno(&regs);
-			print_status(status);
+			if (flags & FLAG_SUMMARY_VALUE) {
+				print_summary();
+			} else {
+				fprintf(stderr, " = ?\n");
+				check_and_print_errno(&regs);
+				print_status(status);
+			}
 			break ;
 		}
 
-		print_syscall_return_value(&regs);
+		if (!(flags & FLAG_SUMMARY_VALUE)) {
+			print_syscall_return_value(&regs);
+		}
 	}
 	return (EXIT_SUCCESS);
 }
 
-int start_tracing() {
-	if (init_tracing(g_childpid))
+int start_tracing(const unsigned int flags) {
+	if (init_tracing())
 		return (EXIT_FAILURE);
 
-	next_syscall(g_childpid);
+	next_syscall(g_childpid, flags);
 	close(g_childpid);
 	return (EXIT_SUCCESS);
 }

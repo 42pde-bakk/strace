@@ -1,8 +1,8 @@
 #include "syscalls.h"
 
-const t_syscall syscalls[] = {
-		[0] = { .nb64 = 0,  .return_value = LONG_INT,  .name = "read",  .registers = { INT, VOID_POINTER, UNSIGNED_LONG_INT, NONE, NONE, NONE }, .handler = &print_syscall},
-		[1] = { .nb64 = 1,  .return_value = LONG_INT,  .name = "write",  .registers = { INT, VOID_POINTER, UNSIGNED_LONG_INT, NONE, NONE, NONE }, .handler = &print_syscall},
+t_syscall syscalls[] = {
+		[0] = { .nb64 = 0,  .return_value = LONG_INT,  .name = "read",  .registers = { INT, BUFFER, UNSIGNED_LONG_INT, NONE, NONE, NONE }, .handler = &print_syscall},
+		[1] = { .nb64 = 1,  .return_value = LONG_INT,  .name = "write",  .registers = { INT, BUFFER, UNSIGNED_LONG_INT, NONE, NONE, NONE }, .handler = &print_syscall},
 		[2] = { .nb64 = 2,  .return_value = INT,  .name = "open",  .registers = { STRING, INT, UNSIGNED_INT, NONE, NONE, NONE }, .handler = &print_syscall},
 		[3] = { .nb64 = 3,  .return_value = INT,  .name = "close",  .registers = { INT, NONE, NONE, NONE, NONE, NONE }, .handler = &print_syscall},
 		[4] = { .nb64 = 4,  .return_value = INT,  .name = "stat",  .registers = { STRING, POINTER, NONE, NONE, NONE, NONE }, .handler = &print_syscall},
@@ -13,11 +13,11 @@ const t_syscall syscalls[] = {
 		[9] = { .nb64 = 9,  .return_value = POINTER,  .name = "mmap",  .registers = { POINTER, UNSIGNED_LONG_INT, INT, INT, INT, LONG_INT },  .handler = &mmap_handler},
 		[10] = { .nb64 = 10,  .return_value = INT,  .name = "mprotect",  .registers = { POINTER, UNSIGNED_LONG_INT, INT, NONE, NONE, NONE }, .handler = &print_syscall},
 		[11] = { .nb64 = 11,  .return_value = INT,  .name = "munmap",  .registers = { POINTER, UNSIGNED_LONG_INT, NONE, NONE, NONE, NONE }, .handler = &print_syscall},
-		[12] = { .nb64 = 12,  .return_value = INT,  .name = "brk",  .registers = { POINTER, NONE, NONE, NONE, NONE, NONE }, .handler = &print_syscall},
+		[12] = { .nb64 = 12,  .return_value = POINTER,  .name = "brk",  .registers = { POINTER, NONE, NONE, NONE, NONE, NONE }, .handler = &print_syscall},
 		[13] = { .nb64 = 13,  .return_value = INT,  .name = "rt_sigaction",  .registers = { INT, POINTER, POINTER, UNSIGNED_LONG_INT, NONE, NONE }, .handler = &print_syscall},
 		[14] = { .nb64 = 14,  .return_value = INT,  .name = "rt_sigprocmask",  .registers = { INT, POINTER, POINTER, UNSIGNED_LONG_INT, NONE, NONE }, .handler = &print_syscall},
 		[15] = { .nb64 = 15,  .return_value = INT,  .name = "rt_sigreturn",  .registers = { INT, NONE, NONE, NONE, NONE, NONE }, .handler = &print_syscall},
-		[16] = { .nb64 = 16,  .return_value = INT,  .name = "ioctl",  .registers = { INT, UNSIGNED_LONG_INT, INT, NONE, NONE, NONE }, .handler = &print_syscall},
+		[16] = { .nb64 = 16,  .return_value = INT,  .name = "ioctl",  .registers = { INT, UNSIGNED_LONG_INT, POINTER, NONE, NONE, NONE }, .handler = &print_syscall},
 		[17] = { .nb64 = 17,  .return_value = LONG_INT,  .name = "pread",  .registers = { INT, POINTER, UNSIGNED_LONG_INT, LONG_INT, NONE, NONE }, .handler = &print_syscall},
 		[18] = { .nb64 = 18,  .return_value = LONG_INT,  .name = "pwrite",  .registers = { INT, POINTER, UNSIGNED_LONG_INT, LONG_INT, NONE, NONE }, .handler = &print_syscall},
 		[19] = { .nb64 = 19,  .return_value = LONG_INT,  .name = "readv",  .registers = { INT, POINTER, INT, NONE, NONE, NONE }, .handler = &print_syscall},

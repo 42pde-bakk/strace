@@ -23,10 +23,13 @@ static const t_mmap_option mmap_prots[] = {
 };
 
 static const t_mmap_option mmap_flags[] = {
-//		{MAP_FILE, "MAP_FILE"},
-//		{MAP_SHARED, "MAP_SHARED"},
-//		{MAP_PRIVATE, "MAP_PRIVATE"},
-//		{MAP_SHARED_VALIDATE, "MAP_SHARED_VALIDATE"},
+		/*
+		 * The following options are handled in mmap_sharing_type():
+		 * {MAP_FILE, "MAP_FILE"},
+		 * {MAP_SHARED, "MAP_SHARED"},
+		 * {MAP_PRIVATE, "MAP_PRIVATE"},
+		 * {MAP_SHARED_VALIDATE, "MAP_SHARED_VALIDATE"},
+		 */
 		{MAP_FIXED, "MAP_FIXED"},
 		{MAP_ANONYMOUS, "MAP_ANONYMOUS"},
 		{MAP_32BIT, "MAP_32BIT"},
