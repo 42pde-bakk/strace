@@ -52,7 +52,7 @@ static void	populate_list(t_summary *summaries[]) {
 	}
 }
 
-void	print_header() {
+static void	print_header() {
 	fprintf(stderr, "%*s %*s %*s %*s %*s %-*s\n",
 			(int)column_widths[TIME_PERCENTAGE], headers[0],
 			(int)column_widths[TOTALSECONDS], headers[1],
@@ -71,7 +71,7 @@ void	print_header() {
 	);
 }
 
-void	print_summary_syscall(const t_summary *summary, const double total_seconds) {
+static void	print_summary_syscall(const t_summary *summary, const double total_seconds) {
 	fprintf(stderr, "%*.*f %*f %*zu %*zu %*.0zu %-*s\n",
 			(int)column_widths[TIME_PERCENTAGE], 2, summary->seconds / total_seconds * 100,
 			(int)column_widths[TOTALSECONDS], summary->seconds,
@@ -82,7 +82,7 @@ void	print_summary_syscall(const t_summary *summary, const double total_seconds)
 	);
 }
 
-double	get_total_seconds(t_summary *summaries[]) {
+static double	get_total_seconds(t_summary *summaries[]) {
 	double	total_seconds = 0;
 
 	for (size_t i = 0; summaries[i]; i++) {
@@ -91,8 +91,7 @@ double	get_total_seconds(t_summary *summaries[]) {
 	return (total_seconds);
 }
 
-void	print_footer(t_summary *summaries[]) {
-//	static const char *empty = "                             ";
+static void	print_footer(t_summary *summaries[]) {
 	size_t	total_calls = 0;
 	size_t	total_errors = 0;
 	size_t	avg_usecs_per_call;
@@ -124,7 +123,7 @@ void	print_footer(t_summary *summaries[]) {
 	);
 }
 
-void	init_summary_structs() {
+static void	init_summary_structs() {
 	static int init = 0;
 
 	if (!init) {

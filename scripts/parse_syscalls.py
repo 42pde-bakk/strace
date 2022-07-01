@@ -1,6 +1,7 @@
 def parse_syscalls():
     # for execve I manually changed args 2 and 3 to be string arrays instead of just pointers
     # ioctl's third argument is a pointer, not an int
+    # brk's manpage says it returns an int, but strace prints a pointer
     enum_converts = {
         'T_INT': 'INT',
         'T_ADDR': 'POINTER',
