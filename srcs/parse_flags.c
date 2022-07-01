@@ -3,12 +3,13 @@
 //
 
 #include "strace.h"
+#include <string.h>
 
 unsigned int parse_flags(int argc, char **argv, int *error) {
 	unsigned int flags = 0u;
 
 	for (int i = 1; i < argc && argv[i]; i++) {
-		if (argv[i][0] != '-') {
+		if (argv[i][0] != '-' || strncmp(argv[i], "--", sizeof("--")) == 0) {
 			break ;
 		}
 		for (unsigned int i2 = 1; argv[i][i2]; i2++) {

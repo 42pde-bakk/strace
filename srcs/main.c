@@ -29,6 +29,9 @@ static int	get_path_nb(int argc, char **argv) {
 		if (argv[i][0] != '-') {
 			return (i);
 		}
+		if (strncmp(argv[i], "--", sizeof("--")) == 0) {
+			return (i + 1);
+		}
 		i++;
 	}
 	return (-1);
