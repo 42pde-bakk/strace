@@ -18,6 +18,22 @@
 #include <elf.h>
 #include <time.h>
 
+int	wait_child(int *status) {
+	int ret;
+
+	if ((sigprocmask(SIG_SETMASK, get_empty_sigset(), NULL) == -1)) {
+		perror("sigprocmask(SIG_SETMASK)");
+	}
+	ret = waitpid(g_childpid, status, WUNTRACED);
+	if (ret == -1) {
+		perror("waitpid");
+	}
+	if ((sigprocmask(SIG_BLOCK, get_blocked_sigset(), get_empty_sigset()) == -1)) {
+		perror("sigprocmask(SIG_BLOCK)");
+	}
+	return (ret);
+}
+
 static int	init_tracing() {
 	int status;
 	long ret;
@@ -28,25 +44,25 @@ static int	init_tracing() {
 	ret = ptrace(PTRACE_INTERRUPT, g_childpid, NULL, NULL);
 	if (ret == -1)
 		perror("PTRACE_INTERRUPT");
-	if (waitpid(g_childpid, &status, WUNTRACED) == -1)
-	{
-		perror("waitpid");
+//	if ((wait_child(&status) == -1)) {
+	if ((waitpid(g_childpid, &status, WUNTRACED) == -1)) {
+		perror("waitpid (init_tracing)");
 		return (EXIT_FAILURE);
 	}
 	return (EXIT_SUCCESS);
 }
 
-static int	print_status(int status) {
-	if (WIFEXITED(status)) {
-		fprintf(stderr, "+++ exited with %d +++\n", WEXITSTATUS(status));
-		return (1);
-	}
-	if (WIFSIGNALED(status)) {
-		fprintf(stderr,"+++ killed by signal +++\n");
-		return (1);
-	}
-	return (0);
-}
+//static int	print_status(int status) {
+//	if (WIFEXITED(status)) {
+//		fprintf(stderr, "+++ exited with %d +++\n", WEXITSTATUS(status));
+//		return (1);
+//	}
+//	if (WIFSIGNALED(status)) {
+//		fprintf(stderr,"+++ killed by signal +++\n");
+//		return (1);
+//	}
+//	return (0);
+//}
 
 static int	next_syscall(const pid_t child_pid, const unsigned int flags) {
 	struct user_regs_struct regs;
@@ -66,15 +82,17 @@ static int	next_syscall(const pid_t child_pid, const unsigned int flags) {
 			return (EXIT_FAILURE);
 		}
 
-		if (waitpid(child_pid, &status, WUNTRACED) == -1) {
+		if (wait_child(&status) == -1) {
 			break ;
 		}
+		check_detached(&regs, flags);
 
 		ret = ptrace(PTRACE_GETREGSET, child_pid, NT_PRSTATUS, &iov);
 		if (ret) {
 			perror("PTRACE_GETREGS1");
 			return (EXIT_FAILURE);
 		}
+//		fprintf(stderr,"1orig_rax=%llu ", regs.orig_rax);
 
 		if (!(flags & FLAG_SUMMARY_VALUE)) {
 			handle_syscall(&regs, child_pid);
@@ -85,33 +103,41 @@ static int	next_syscall(const pid_t child_pid, const unsigned int flags) {
 			perror("PTRACE_SYSCALL2");
 			return (EXIT_FAILURE);
 		}
+
 		const clock_t start_time = clock();
-		if (waitpid(child_pid, &status, WUNTRACED) == -1) {
+		if (wait_child(&status) == -1) {
 			break ;
 		}
 		check_detached(&regs, flags);
 
-		t_summary *summary = &syscalls[regs.orig_rax].summary;
-		double elapsed_time = measure_elapsed_time(start_time);
-		summary->calls++;
-		summary->seconds += elapsed_time;
+		t_summary *summary = NULL;
+		if (regs.orig_rax <= MAX_SYSCALL_NB) {
+			summary = &syscalls[regs.orig_rax].summary;
+			double elapsed_time = measure_elapsed_time(start_time);
+			summary->calls++;
+			summary->seconds += elapsed_time;
+		}
 
 		ptrace(PTRACE_GETREGSET, child_pid, NT_PRSTATUS, &iov);
-		if ((int)regs.rax < 0) {
+//		fprintf(stderr,"2orig_rax=%llu ", regs.orig_rax);
+
+		if ((int)regs.rax < 0 && summary != NULL) {
 			summary->errors++;
 		}
 
-		if (WIFSIGNALED(status) || WIFEXITED(status)) {
-			if (flags & FLAG_SUMMARY_VALUE) {
-				print_summary();
-			} else {
-				fprintf(stderr, " = ?\n");
-				check_and_print_errno(&regs);
-				print_status(status);
-			}
+		if (check_child_state(status, flags))
 			break ;
-		}
-
+//		if (WIFSIGNALED(status) || WIFEXITED(status)) {
+//			fprintf(stderr, "E");
+//			if (flags & FLAG_SUMMARY_VALUE) {
+//				print_summary();
+//			} else {
+//				fprintf(stderr, " = ?\n");
+//				check_and_print_errno(&regs);
+//				print_status(status);
+//			}
+//			break ;
+//		}
 		if (!(flags & FLAG_SUMMARY_VALUE)) {
 			print_syscall_return_value(&regs);
 		}

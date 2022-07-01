@@ -6,7 +6,8 @@ SRC_DIR = ./srcs
 OBJ_DIR = ./obj
 SRC_EXT = c
 OBJ_EXT = o
-SRCS = $(wildcard $(SRC_DIR)/*.c)
+#SRCS = $(wildcard $(SRC_DIR)/*.c)
+SRCS = $(shell find $(SRC_DIR)/ -type f -name "*.${SRC_EXT}")
 OBJECTSS = $(SRCS:.c=.o)
 OBJS = $(patsubst $(SRC_DIR)/%,$(OBJ_DIR)/%,$(OBJECTSS))
 
@@ -38,11 +39,8 @@ $(NAME): $(LIBS) $(OBJS) $(HEADER)
 %.a: %
 	$(MAKE) -C $< && cp $</$@ .
 
-directories:
-	mkdir -p $(OBJ_DIR)
-
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.c
-	@$(MAKE) -s directories
+	mkdir -p "$(@D)"
 	$(CC) -c $(CFLAGS) $(INCLUDE) $< -o $@
 
 clean:
