@@ -12,7 +12,6 @@
 
 #define DETACH_EXIT_CODE 130
 
-//extern pid_t g_childpid;
 static bool	should_detach;
 static int	signal_received;
 
@@ -20,7 +19,6 @@ static void	sigint_handler(int sig) {
 	(void)sig;
 	signal_received = SIGINT;
 	kill(g_childpid, SIGINT);
-	// detach ?
 	should_detach = true;
 }
 
@@ -28,7 +26,6 @@ static void	sigquit_handler(int sig) {
 	(void)sig;
 	signal_received = SIGQUIT;
 	kill(g_childpid, SIGQUIT);
-	// detach ?
 	should_detach = true;
 }
 

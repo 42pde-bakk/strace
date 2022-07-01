@@ -17,9 +17,8 @@
 #include <sys/uio.h>
 #include <elf.h>
 #include <time.h>
-#include <assert.h>
 
-int	init_tracing() {
+static int	init_tracing() {
 	int status;
 	long ret;
 

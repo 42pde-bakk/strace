@@ -16,11 +16,9 @@ unsigned int parse_flags(int argc, char **argv, int *error) {
 				case FLAG_SUMMARY_CHAR:
 					flags |= FLAG_SUMMARY_VALUE;
 					break ;
-				case FLAG_OUTPUT_REDIR_CHAR:
-					flags |= FLAG_OUTPUT_REDIR_VALUE;
-					break ;
 				default:
 					*error = 1;
+					break ;
 			}
 		}
 	}

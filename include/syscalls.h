@@ -18,6 +18,7 @@ typedef enum syscall_type {
 	POINTER,
 	STRUCT,
 	STRING,
+	BUFFER,
 	SSIZE_T,
 	UNSIGNED_LONG_INT,
 	VOID,

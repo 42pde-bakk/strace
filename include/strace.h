@@ -8,11 +8,10 @@
 #include <unistd.h>
 #include <sys/user.h>
 #include <sys/types.h>
+#include <stdbool.h>
 
 #define FLAG_SUMMARY_CHAR 'c'
-#define FLAG_OUTPUT_REDIR_CHAR 'o'
 #define FLAG_SUMMARY_VALUE 0b01
-#define FLAG_OUTPUT_REDIR_VALUE 0b10
 
 #define MAX_ERRNO_NB 131
 typedef struct s_errno {
@@ -27,12 +26,11 @@ extern pid_t g_childpid;
  * srcs/signal.c
  */
 void	setup_sighandlers();
-void check_detached(const struct user_regs_struct *regs, unsigned int flags);
+void	check_detached(const struct user_regs_struct *regs, unsigned int flags);
 
 /*
  * srcs/tracing.c
  */
-int	init_tracing();
 int start_tracing(unsigned int flags);
 
 /*
@@ -49,11 +47,19 @@ unsigned int parse_flags(int argc, char **argv, int *error);
  * srcs/utils.c
  */
 double	measure_elapsed_time(clock_t start);
+char	*ft_str3join(const char *a, const char *b, const char *c);
+void	free_array(char **arr);
 
 /*
  * srcs/summary.c
  */
-
 void	print_summary();
+
+/*
+ * srcs/print_strings.c
+ */
+char	*read_string(unsigned long long regval, bool *dots, size_t read_amount);
+char	*buffering(char *str);
+void	read_string_array(unsigned long long regval);
 
 #endif //STRACE_STRACE_H

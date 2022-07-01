@@ -92,9 +92,10 @@ double	get_total_seconds(t_summary *summaries[]) {
 }
 
 void	print_footer(t_summary *summaries[]) {
-	static const char *empty = "                             ";
+//	static const char *empty = "                             ";
 	size_t	total_calls = 0;
 	size_t	total_errors = 0;
+	size_t	avg_usecs_per_call;
 	double	total_seconds = 0;
 
 	for (size_t i = 0; summaries[i]; i++) {
@@ -102,6 +103,8 @@ void	print_footer(t_summary *summaries[]) {
 		total_errors += summaries[i]->errors;
 		total_seconds += summaries[i]->seconds;
 	}
+	avg_usecs_per_call = (size_t)(total_seconds * 1000000 / (double)total_calls + 0.5f);
+
 
 	fprintf(stderr, "%.*s %.*s %.*s %.*s %.*s %.*s\n",
 			(int)column_widths[TIME_PERCENTAGE], sep,
@@ -111,10 +114,10 @@ void	print_footer(t_summary *summaries[]) {
 			(int)column_widths[ERRORS], sep,
 			(int)column_widths[SYSCALL_NAME], sep
 	);
-	fprintf(stderr, "%.*s %*f %.*s %*zu %*zu %.*s\n",
+	fprintf(stderr, "%.*s %*f %*d %*zu %*zu %.*s\n",
 			(int)column_widths[TIME_PERCENTAGE], footers[0],
 			(int)column_widths[TOTALSECONDS], total_seconds,
-			(int)column_widths[USECS_PER_CALL], empty,
+			(int)column_widths[USECS_PER_CALL], (int)avg_usecs_per_call,
 			(int)column_widths[CALLS], total_calls,
 			(int)column_widths[ERRORS], total_errors,
 			(int)column_widths[SYSCALL_NAME], footers[1]

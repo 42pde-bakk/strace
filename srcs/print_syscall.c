@@ -7,60 +7,11 @@
 #include <sys/user.h>
 #include <stdio.h>
 #include <string.h>
-#include <sys/ptrace.h>
-#include <errno.h>
-
-size_t	array_length(char **arr) {
-	size_t i = 0;
-
-	if (!arr)
-		return (0);
-	while (arr[i])
-		++i;
-	return (i);
-}
-
-static void	read_string(unsigned long long regval) {
-	char buf[1024];
-	long int ret;
-	size_t i = 0;
-
-	memset(buf, 0, sizeof(buf));
-	while (i < 5) {
-		ret = ptrace(PTRACE_PEEKDATA, g_childpid, regval + (i * sizeof(ret)), 0);
-		if (errno) {
-			break ;
-		}
-		memcpy(buf + (i * sizeof(ret)), &ret, sizeof(ret));
-		if (memchr(&ret, 0, sizeof(ret)) != NULL)
-			break ;
-		i++;
-	}
-	fprintf(stderr, "\"%s\"", buf);
-}
-#define MAX_VARS 5
-static void	read_string_array(unsigned long long regval) {
-	size_t	len,
-			i = 0;
-	char	**string_array;
-
-	string_array = (char **)regval;
-	len = array_length(string_array);
-	if (len > MAX_VARS) {
-		fprintf(stderr, "%p /* %zu vars */", string_array, len);
-		return ;
-	}
-	fprintf(stderr, "[");
-	while (string_array[i]) {
-		if (i)
-			fprintf(stderr, ", ");
-		read_string((unsigned long long)string_array[i]);
-		++i;
-	}
-	fprintf(stderr, "]");
-}
+#include <stdbool.h>
 
 static void	switch_case(const e_syscall_type eSyscallType, const unsigned long long int regval) {
+	char *str;
+	bool dots = false;
 	switch (eSyscallType) {
 		case FLAGS:
 		case INT:
@@ -72,8 +23,14 @@ static void	switch_case(const e_syscall_type eSyscallType, const unsigned long l
 		case SIZE_T:
 			fprintf(stderr, "%zu", (size_t)regval);
 			break;
-		case STRING_ARRAY:
-			read_string_array(regval);
+		case BUFFER:
+			/* Pretty much the same as a string, but print newlines as '\n' */
+			str = read_string(regval, &dots, 4);
+			str = buffering(str);
+			fprintf(stderr, "\"%s\"", str);
+			if (dots)
+				fprintf(stderr, "...");
+			free(str);
 			break ;
 		case STRING:
 			/*
@@ -81,7 +38,12 @@ static void	switch_case(const e_syscall_type eSyscallType, const unsigned long l
 			 * we need those functions to print strings.
 			 * Otherwise, the best we can do is to only print their address.
 			 */
-			read_string(regval);
+			str = read_string(regval, &dots, 5);
+			fprintf(stderr, "\"%s\"", str);
+			free(str);
+			break ;
+		case STRING_ARRAY:
+			read_string_array(regval);
 			break ;
 		case VOID_POINTER:
 		case STRUCT:
@@ -106,7 +68,7 @@ static void	switch_case(const e_syscall_type eSyscallType, const unsigned long l
 }
 
 void	mmap_handler(const struct user_regs_struct *regs) {
-	const t_syscall syscal_mmap = syscalls[9];
+	const t_syscall	syscal_mmap = syscalls[9];
 	fprintf(stderr, "%s(", syscal_mmap.name);
 	switch_case(syscal_mmap.rdi, regs->rdi);
 
@@ -115,7 +77,6 @@ void	mmap_handler(const struct user_regs_struct *regs) {
 	fprintf(stderr, ", ");
 	mmap_handle_flags(regs->r10);
 	fprintf(stderr, ", %d, %ld)", (int)regs->r8, (long int)regs->r9);
-//	exit(1);
 }
 
 void	ptrace_handler(const struct user_regs_struct *regs) {

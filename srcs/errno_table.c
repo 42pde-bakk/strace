@@ -1,5 +1,4 @@
 #include "strace.h"
-#include <errno.h>
 
 t_errno errnoTable[] = {
 		[1] = { .nb = 1, .code = "EPERM", .description = "Operation not permitted" },
