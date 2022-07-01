@@ -115,6 +115,11 @@ void	print_syscall(const struct user_regs_struct *regs) {
 
 void	handle_syscall(const struct user_regs_struct *regs, const pid_t child_pid) {
 	const unsigned long long int syscall_nb = regs->orig_rax;
+
+	if (syscall_nb > MAX_SYSCALL_NB) {
+		fprintf(stderr, "syscall_%#llxbad(%#llx, %#llx, %#llx, %#llx, %#llx, %#llx)",
+				syscall_nb, regs->rdi, regs->rsi, regs->rdx, regs->r10, regs->r8, regs->r9);
+	}
 	const t_syscall syscall = syscalls[syscall_nb];
 
 	g_childpid = child_pid;
