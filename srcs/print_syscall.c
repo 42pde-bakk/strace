@@ -149,7 +149,7 @@ void print_syscall_return_value(struct user_regs_struct *regs) {
 		return ;
 	}
 	const t_syscall syscall = syscalls[syscallNb];
-	fprintf(stderr, "%s", syscall.name);
+//	fprintf(stderr, "%s", syscall.name);
 
 	fprintf(stderr, " = ");
 	if (check_and_print_errno(regs) == 0) {

@@ -39,7 +39,6 @@ sigset_t	*get_blocked_sigset() {
 		sigaddset(&blocked, SIGQUIT);
 		sigaddset(&blocked, SIGPIPE);
 		sigaddset(&blocked, SIGTERM);
-		sigaddset(&blocked, SIGCHLD);
 		init = true;
 	}
 	return (&blocked);
@@ -109,7 +108,7 @@ int	check_child_state(const int status, const unsigned int flags) {
 		}
 		else {
 			fprintf(stderr, " = ?\n");
-			// Do i need to do check_and_print_errno
+			// Do I need to do check_and_print_errno
 			fprintf(stderr, "+++ exited with %d +++\n", WEXITSTATUS(status));
 		}
 		return (1);
@@ -119,6 +118,7 @@ int	check_child_state(const int status, const unsigned int flags) {
 
 		bzero(&siginfo, sizeof(siginfo));
 		if ((ptrace(PTRACE_GETSIGINFO, g_childpid, NULL, &siginfo) != -1 && !(siginfo.si_signo == SIGTRAP && siginfo.si_code != 0))) {
+			fprintf(stderr, "GETSIGNINFO");
 			print_siginfo_t(&siginfo, status);
 			return (1);
 		}

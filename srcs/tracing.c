@@ -18,20 +18,21 @@
 #include <elf.h>
 #include <time.h>
 
-int	wait_child(int *status) {
-	int ret;
+int	wait_child() {
+	int status;
+	const sigset_t	*empty = get_empty_sigset();
+	const sigset_t	*blocked = get_blocked_sigset();
 
-	if ((sigprocmask(SIG_SETMASK, get_empty_sigset(), NULL) == -1)) {
+	if ((sigprocmask(SIG_SETMASK, empty, NULL) == -1)) {
 		perror("sigprocmask(SIG_SETMASK)");
 	}
-	ret = waitpid(g_childpid, status, WUNTRACED);
-	if (ret == -1) {
+	if ((waitpid(g_childpid, &status, WUNTRACED) == -1)) {
 		perror("waitpid");
 	}
-	if ((sigprocmask(SIG_BLOCK, get_blocked_sigset(), get_empty_sigset()) == -1)) {
+	if ((sigprocmask(SIG_BLOCK, blocked, get_empty_sigset()) == -1)) {
 		perror("sigprocmask(SIG_BLOCK)");
 	}
-	return (ret);
+	return (status);
 }
 
 static int	init_tracing() {
@@ -44,7 +45,6 @@ static int	init_tracing() {
 	ret = ptrace(PTRACE_INTERRUPT, g_childpid, NULL, NULL);
 	if (ret == -1)
 		perror("PTRACE_INTERRUPT");
-//	if ((wait_child(&status) == -1)) {
 	if ((waitpid(g_childpid, &status, WUNTRACED) == -1)) {
 		perror("waitpid (init_tracing)");
 		return (EXIT_FAILURE);
@@ -52,21 +52,9 @@ static int	init_tracing() {
 	return (EXIT_SUCCESS);
 }
 
-//static int	print_status(int status) {
-//	if (WIFEXITED(status)) {
-//		fprintf(stderr, "+++ exited with %d +++\n", WEXITSTATUS(status));
-//		return (1);
-//	}
-//	if (WIFSIGNALED(status)) {
-//		fprintf(stderr,"+++ killed by signal +++\n");
-//		return (1);
-//	}
-//	return (0);
-//}
-
 static int	next_syscall(const pid_t child_pid, const unsigned int flags) {
 	struct user_regs_struct regs;
-	int	status = 0;
+	int	status;
 	long ret;
 	struct iovec iov = {
 			.iov_base = &regs,
@@ -82,8 +70,10 @@ static int	next_syscall(const pid_t child_pid, const unsigned int flags) {
 			return (EXIT_FAILURE);
 		}
 
-		if (wait_child(&status) == -1) {
-			break ;
+		status = wait_child();
+		if (check_child_state(status, flags)) {
+
+			continue ;
 		}
 		check_detached(&regs, flags);
 
@@ -105,7 +95,9 @@ static int	next_syscall(const pid_t child_pid, const unsigned int flags) {
 		}
 
 		const clock_t start_time = clock();
-		if (wait_child(&status) == -1) {
+		status = wait_child();
+		if (check_child_state(status, flags)) {
+			isAlive = false;
 			break ;
 		}
 		check_detached(&regs, flags);
@@ -125,19 +117,6 @@ static int	next_syscall(const pid_t child_pid, const unsigned int flags) {
 			summary->errors++;
 		}
 
-		if (check_child_state(status, flags))
-			break ;
-//		if (WIFSIGNALED(status) || WIFEXITED(status)) {
-//			fprintf(stderr, "E");
-//			if (flags & FLAG_SUMMARY_VALUE) {
-//				print_summary();
-//			} else {
-//				fprintf(stderr, " = ?\n");
-//				check_and_print_errno(&regs);
-//				print_status(status);
-//			}
-//			break ;
-//		}
 		if (!(flags & FLAG_SUMMARY_VALUE)) {
 			print_syscall_return_value(&regs);
 		}
