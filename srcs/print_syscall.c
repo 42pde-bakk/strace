@@ -127,6 +127,10 @@ void	handle_syscall(const struct user_regs_struct *regs, const pid_t child_pid) 
 }
 
 int	check_and_print_errno(const struct user_regs_struct *regs) {
+	if (regs->orig_rax > MAX_SYSCALL_NB) {
+		fprintf(stderr, "%d", (int)regs->rax);
+		return (1);
+	}
 	const t_syscall syscall = syscalls[regs->orig_rax];
 	const int child_errno_nb = -1 * (int)regs->rax;
 
@@ -145,6 +149,7 @@ void print_syscall_return_value(struct user_regs_struct *regs) {
 		return ;
 	}
 	const t_syscall syscall = syscalls[syscallNb];
+//	fprintf(stderr, "%s", syscall.name);
 
 	fprintf(stderr, " = ");
 	if (check_and_print_errno(regs) == 0) {

@@ -13,6 +13,10 @@
 #define FLAG_SUMMARY_CHAR 'c'
 #define FLAG_SUMMARY_VALUE 0b01
 
+#define NO_ACTION 0
+#define CONTINUE 1
+#define BREAK 2
+
 #define MAX_ERRNO_NB 131
 typedef struct s_errno {
 	int nb;
@@ -21,12 +25,25 @@ typedef struct s_errno {
 }	t_errno;
 extern t_errno	errnoTable[];
 
+typedef struct s_signal {
+	int			nb;
+	const char	*name;
+}	t_signal;
+
+typedef struct s_signal_code {
+	int signal;
+	t_signal	*codes;
+}	t_signal_code;
+
 extern pid_t g_childpid;
 /*
  * srcs/signal.c
  */
+sigset_t	*get_blocked_sigset();
+sigset_t	*get_empty_sigset();
 void	setup_sighandlers();
 void	check_detached(const struct user_regs_struct *regs, unsigned int flags);
+int	check_child_state(int status, unsigned int flags);
 
 /*
  * srcs/tracing.c
@@ -61,5 +78,11 @@ void	print_summary();
 char	*read_string(unsigned long long regval, bool *dots, size_t read_amount);
 char	*buffering(char *str);
 void	read_string_array(unsigned long long regval);
+
+/*
+ * srcs/tables/signal_table.c
+ */
+const char	*get_signal_name(int nb);
+const char *get_signal_code(int signal_nb, int signal_code);
 
 #endif //STRACE_STRACE_H

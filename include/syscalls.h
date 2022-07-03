@@ -36,16 +36,16 @@ typedef void (*handler_func)(const struct user_regs_struct*);
 typedef struct s_syscall {
 	const long int				nb64;
 	const long int				nb32;
-	const e_syscall_type			return_value;
+	const e_syscall_type		return_value;
 	const char*					name;
 	const union {
 		e_syscall_type			registers[6];
-		e_syscall_type			rdi;		// first pa
-		e_syscall_type			rsi;		// seconde param
-		e_syscall_type			rdx;		// third param
-		e_syscall_type			r10;		// four param
-		e_syscall_type			r8;			// five param
-		e_syscall_type			r9;			// six param
+		e_syscall_type			rdi;		// first parameter
+		e_syscall_type			rsi;		// second parameter
+		e_syscall_type			rdx;		// third parameter
+		e_syscall_type			r10;		// fourth parameter
+		e_syscall_type			r8;			// fifth parameter
+		e_syscall_type			r9;			// sixth parameter
 	};
 	const handler_func handler;
 	t_summary summary;
