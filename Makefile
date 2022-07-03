@@ -29,6 +29,12 @@ endif
 SHELL := /bin/bash
 export SHELL
 export DEBUG
+ifdef SPEED
+ CFLAGS += -Ofast
+endif
+ifdef MANDATORY
+ CFLAGS += -D PRINT_STRINGS_AS_POINTERS=1
+endif
 
 all: $(NAME)
 
