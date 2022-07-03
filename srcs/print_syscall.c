@@ -10,8 +10,10 @@
 #include <stdbool.h>
 
 static void	switch_case(const e_syscall_type eSyscallType, const unsigned long long int regval) {
+#ifndef PRINT_STRINGS_AS_POINTERS
 	char *str;
 	bool dots = false;
+#endif
 	switch (eSyscallType) {
 		case FLAGS:
 		case INT:
@@ -23,6 +25,11 @@ static void	switch_case(const e_syscall_type eSyscallType, const unsigned long l
 		case SIZE_T:
 			fprintf(stderr, "%zu", (size_t)regval);
 			break;
+#ifdef PRINT_STRINGS_AS_POINTERS
+		case BUFFER:
+		case STRING:
+		case STRING_ARRAY:
+#else
 		case BUFFER:
 			/* Pretty much the same as a string, but print newlines as '\n' */
 			str = read_string(regval, &dots, 4);
@@ -45,6 +52,7 @@ static void	switch_case(const e_syscall_type eSyscallType, const unsigned long l
 		case STRING_ARRAY:
 			read_string_array(regval);
 			break ;
+#endif
 		case VOID_POINTER:
 		case STRUCT:
 		case POINTER:
@@ -149,7 +157,6 @@ void print_syscall_return_value(struct user_regs_struct *regs) {
 		return ;
 	}
 	const t_syscall syscall = syscalls[syscallNb];
-//	fprintf(stderr, "%s", syscall.name);
 
 	fprintf(stderr, " = ");
 	if (check_and_print_errno(regs) == 0) {
