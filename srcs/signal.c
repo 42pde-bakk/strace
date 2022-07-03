@@ -13,6 +13,7 @@
 #include "strace.h"
 
 #define DETACH_EXIT_CODE 130
+#define SIGSEGV_EXIT_CODE 139
 
 static bool	should_detach;
 static int	signal_received;
@@ -39,6 +40,7 @@ sigset_t	*get_blocked_sigset() {
 		sigaddset(&blocked, SIGQUIT);
 		sigaddset(&blocked, SIGPIPE);
 		sigaddset(&blocked, SIGTERM);
+		sigaddset(&blocked, SIGTTIN);
 		init = true;
 	}
 	return (&blocked);
@@ -121,7 +123,6 @@ int	check_child_state(const int status, const unsigned int flags) {
 			fprintf(stderr, "+++ killed by %s", get_signal_name(WTERMSIG(status)));
 			if (WCOREDUMP(status)) {
 				fprintf(stderr, " (core dumped)");
-//				exit(139);
 			}
 			fprintf(stderr, " +++\n");
 		}
@@ -132,14 +133,13 @@ int	check_child_state(const int status, const unsigned int flags) {
 
 		bzero(&siginfo, sizeof(siginfo));
 		if ((ptrace(PTRACE_GETSIGINFO, g_childpid, NULL, &siginfo) != -1 && !(siginfo.si_signo == SIGTRAP && siginfo.si_code != 0))) {
-//			fprintf(stderr, "GETSIGNINFO");
 			print_siginfo_t(&siginfo, status);
 			if (WSTOPSIG(status) & 0x80) {
 				fprintf(stderr, "0x80");
 			}
 			if (WSTOPSIG(status) == SIGSEGV) {
 				fprintf(stderr, "+++ killed by %s (core dumped) +++\n", get_signal_name(WSTOPSIG(status)));
-				exit(139);
+				exit(SIGSEGV_EXIT_CODE);
 			}
 			return (CONTINUE);
 		}

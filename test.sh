@@ -36,8 +36,3 @@ do
     test $OUTFILE
   fi
 done
-
-#test "correction/test_1.out"
-#test "correction/test_3.out"
-#test "correction/test4.out"
-#test "correction/test_5.out"

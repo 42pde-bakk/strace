@@ -29,7 +29,7 @@ int	wait_child() {
 	if ((waitpid(g_childpid, &status, WUNTRACED) == -1)) {
 		perror("waitpid");
 	}
-	if ((sigprocmask(SIG_BLOCK, blocked, get_empty_sigset()) == -1)) {
+	if ((sigprocmask(SIG_BLOCK, blocked, NULL) == -1)) {
 		perror("sigprocmask(SIG_BLOCK)");
 	}
 	return (status);
