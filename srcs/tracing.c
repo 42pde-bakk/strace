@@ -18,6 +18,10 @@
 #include <elf.h>
 #include <time.h>
 
+e_arch arch;
+t_syscall *syscalls;
+size_t		max_syscall_nb;
+
 int	wait_child() {
 	int status;
 	const sigset_t	*empty = get_empty_sigset();
@@ -50,6 +54,27 @@ static int	init_tracing() {
 		return (EXIT_FAILURE);
 	}
 	return (EXIT_SUCCESS);
+}
+
+void	get_arch(const struct iovec *iov) {
+	static int done = false;
+	static const size_t user_regs_struct_size_32 = 136;
+//	static const size_t user_regs_struct_size_64 = 216;
+//	Found in /usr/include/x86_64-linux-gnu/sys/user.h
+
+	if (done)
+		return ;
+	done = true;
+	if (iov->iov_len == user_regs_struct_size_32) {
+		arch = ARCH_32;
+		max_syscall_nb = MAX_SYSCALL_NB_32;
+		syscalls = syscalls_32;
+	}
+	else {
+		arch = ARCH_64;
+		max_syscall_nb = MAX_SYSCALL_NB_64;
+		syscalls = syscalls_64;
+	}
 }
 
 static int	next_syscall(const pid_t child_pid, const unsigned int flags) {
@@ -85,6 +110,7 @@ static int	next_syscall(const pid_t child_pid, const unsigned int flags) {
 			perror("PTRACE_GETREGS1");
 			return (EXIT_FAILURE);
 		}
+		get_arch(&iov);
 		if (!(flags & FLAG_SUMMARY_VALUE)) {
 			handle_syscall(&regs, child_pid);
 		}
@@ -106,7 +132,7 @@ static int	next_syscall(const pid_t child_pid, const unsigned int flags) {
 		check_detached(&regs, flags);
 
 		t_summary *summary = NULL;
-		if (regs.orig_rax <= MAX_SYSCALL_NB) {
+		if (regs.orig_rax <= max_syscall_nb) {
 			summary = &syscalls[regs.orig_rax].summary;
 			double elapsed_time = measure_elapsed_time(start_time);
 			summary->calls++;

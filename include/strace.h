@@ -36,6 +36,7 @@ typedef struct s_signal_code {
 }	t_signal_code;
 
 extern pid_t g_childpid;
+
 /*
  * srcs/signal.c
  */

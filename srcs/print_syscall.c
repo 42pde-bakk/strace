@@ -101,7 +101,7 @@ void	print_syscall(const struct user_regs_struct *regs) {
 			regs->rdi, regs->rsi, regs->rdx,
 			regs->r10, regs->r8, regs->r9
 	};
-	if (syscall_nb > MAX_SYSCALL_NB) {
+	if (syscall_nb > max_syscall_nb) {
 		fprintf(stderr, "syscall_%llubad(%llx, %llx, %llx, %llx, %llx, %llx)",
 				syscall_nb,
 				regs->rdi, regs->rsi, regs->rdx,
@@ -124,10 +124,11 @@ void	print_syscall(const struct user_regs_struct *regs) {
 void	handle_syscall(const struct user_regs_struct *regs, const pid_t child_pid) {
 	const unsigned long long int syscall_nb = regs->orig_rax;
 
-	if (syscall_nb > MAX_SYSCALL_NB) {
+	if (syscall_nb > max_syscall_nb) {
 		fprintf(stderr, "syscall_%#llxbad(%#llx, %#llx, %#llx, %#llx, %#llx, %#llx)",
 				syscall_nb, regs->rdi, regs->rsi, regs->rdx, regs->r10, regs->r8, regs->r9);
 	}
+//	fprintf(stderr, "nb = %llu\n", syscall_nb);
 	const t_syscall syscall = syscalls[syscall_nb];
 
 	g_childpid = child_pid;
@@ -135,7 +136,7 @@ void	handle_syscall(const struct user_regs_struct *regs, const pid_t child_pid) 
 }
 
 int	check_and_print_errno(const struct user_regs_struct *regs) {
-	if (regs->orig_rax > MAX_SYSCALL_NB) {
+	if (regs->orig_rax > max_syscall_nb) {
 		fprintf(stderr, "%d", (int)regs->rax);
 		return (1);
 	}
@@ -152,7 +153,7 @@ int	check_and_print_errno(const struct user_regs_struct *regs) {
 
 void print_syscall_return_value(struct user_regs_struct *regs) {
 	const unsigned long long int syscallNb = regs->orig_rax;
-	if (syscallNb > MAX_SYSCALL_NB) {
+	if (syscallNb > max_syscall_nb) {
 		fprintf(stderr, " = %llu\n", regs->rax);
 		return ;
 	}

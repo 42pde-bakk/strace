@@ -8,7 +8,15 @@
 #include <sys/user.h>
 #include <stdlib.h>
 #include <summary.h>
-#define MAX_SYSCALL_NB 334
+#define MAX_SYSCALL_NB_64 334
+#define MAX_SYSCALL_NB_32 386
+
+typedef enum {
+	ARCH_32,
+	ARCH_64
+}	e_arch;
+extern e_arch arch;
+extern size_t max_syscall_nb;
 
 typedef enum syscall_type {
 	NONE,
@@ -34,8 +42,6 @@ typedef enum syscall_type {
 typedef void (*handler_func)(const struct user_regs_struct*);
 
 typedef struct s_syscall {
-	const long int				nb64;
-	const long int				nb32;
 	const e_syscall_type		return_value;
 	const char*					name;
 	const union {
@@ -51,7 +57,9 @@ typedef struct s_syscall {
 	t_summary summary;
 }	t_syscall;
 
-extern t_syscall syscalls[];
+extern t_syscall syscalls_64[];
+extern t_syscall syscalls_32[];
+extern t_syscall *syscalls;
 
 /*
  * srcs/print_syscall.c

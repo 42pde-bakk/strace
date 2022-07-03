@@ -34,7 +34,7 @@ static size_t	max(const size_t a, const size_t b) {
 static size_t	count_used_syscalls() {
 	size_t amount = 0;
 
-	for (size_t i = 0; i <= MAX_SYSCALL_NB; i++) {
+	for (size_t i = 0; i <= max_syscall_nb; i++) {
 		if (syscalls[i].summary.calls > 0)
 			amount++;
 	}
@@ -43,7 +43,7 @@ static size_t	count_used_syscalls() {
 
 static void	populate_list(t_summary *summaries[]) {
 	size_t n = 0;
-	for (size_t i = 0; i < MAX_SYSCALL_NB + 1; i++) {
+	for (size_t i = 0; i < max_syscall_nb + 1; i++) {
 		if (syscalls[i].summary.calls > 0) {
 			summaries[n] = &syscalls[i].summary;
 			column_widths[SYSCALL_NAME] = max(column_widths[SYSCALL_NAME], strlen(syscalls[i].name));
@@ -127,8 +127,8 @@ static void	init_summary_structs() {
 	static int init = 0;
 
 	if (!init) {
-		for (size_t i = 0; i <= MAX_SYSCALL_NB; i++) {
-			syscalls[i].summary.syscallNb = syscalls[i].nb64;
+		for (size_t i = 0; i <= max_syscall_nb; i++) {
+			syscalls[i].summary.syscallNb = i; //syscalls[i].nb64;
 		}
 		init = 1;
 	}
