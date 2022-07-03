@@ -111,17 +111,7 @@ int	check_child_state(const int status, const unsigned int flags) {
 			// Do I need to do check_and_print_errno
 			fprintf(stderr, "+++ exited with %d +++\n", WEXITSTATUS(status));
 		}
-		return (1);
-	}
-	if (WIFSTOPPED(status)) {
-		siginfo_t siginfo;
-
-		bzero(&siginfo, sizeof(siginfo));
-		if ((ptrace(PTRACE_GETSIGINFO, g_childpid, NULL, &siginfo) != -1 && !(siginfo.si_signo == SIGTRAP && siginfo.si_code != 0))) {
-			fprintf(stderr, "GETSIGNINFO");
-			print_siginfo_t(&siginfo, status);
-			return (1);
-		}
+		return (BREAK);
 	}
 	if (WIFSIGNALED(status)) {
 		if (flags & FLAG_SUMMARY_VALUE) {
@@ -131,10 +121,28 @@ int	check_child_state(const int status, const unsigned int flags) {
 			fprintf(stderr, "+++ killed by %s", get_signal_name(WTERMSIG(status)));
 			if (WCOREDUMP(status)) {
 				fprintf(stderr, " (core dumped)");
+//				exit(139);
 			}
 			fprintf(stderr, " +++\n");
 		}
-		return (1);
+		return (BREAK);
 	}
-	return (0);
+	if (WIFSTOPPED(status)) {
+		siginfo_t siginfo;
+
+		bzero(&siginfo, sizeof(siginfo));
+		if ((ptrace(PTRACE_GETSIGINFO, g_childpid, NULL, &siginfo) != -1 && !(siginfo.si_signo == SIGTRAP && siginfo.si_code != 0))) {
+//			fprintf(stderr, "GETSIGNINFO");
+			print_siginfo_t(&siginfo, status);
+			if (WSTOPSIG(status) & 0x80) {
+				fprintf(stderr, "0x80");
+			}
+			if (WSTOPSIG(status) == SIGSEGV) {
+				fprintf(stderr, "+++ killed by %s (core dumped) +++\n", get_signal_name(WSTOPSIG(status)));
+				exit(139);
+			}
+			return (CONTINUE);
+		}
+	}
+	return (NO_ACTION);
 }

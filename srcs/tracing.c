@@ -56,6 +56,7 @@ static int	next_syscall(const pid_t child_pid, const unsigned int flags) {
 	struct user_regs_struct regs;
 	int	status;
 	long ret;
+	int childstate_action;
 	struct iovec iov = {
 			.iov_base = &regs,
 			.iov_len = sizeof(struct user_regs_struct)
@@ -71,10 +72,12 @@ static int	next_syscall(const pid_t child_pid, const unsigned int flags) {
 		}
 
 		status = wait_child();
-		if (check_child_state(status, flags)) {
-
+		childstate_action = check_child_state(status, flags);
+		if (childstate_action == CONTINUE)
 			continue ;
-		}
+		else if (childstate_action == BREAK)
+			break ;
+
 		check_detached(&regs, flags);
 
 		ret = ptrace(PTRACE_GETREGSET, child_pid, NT_PRSTATUS, &iov);
@@ -82,8 +85,6 @@ static int	next_syscall(const pid_t child_pid, const unsigned int flags) {
 			perror("PTRACE_GETREGS1");
 			return (EXIT_FAILURE);
 		}
-//		fprintf(stderr,"1orig_rax=%llu ", regs.orig_rax);
-
 		if (!(flags & FLAG_SUMMARY_VALUE)) {
 			handle_syscall(&regs, child_pid);
 		}
@@ -96,10 +97,12 @@ static int	next_syscall(const pid_t child_pid, const unsigned int flags) {
 
 		const clock_t start_time = clock();
 		status = wait_child();
-		if (check_child_state(status, flags)) {
-			isAlive = false;
+		childstate_action = check_child_state(status, flags);
+		if (childstate_action == CONTINUE)
+			continue ;
+		else if (childstate_action == BREAK)
 			break ;
-		}
+
 		check_detached(&regs, flags);
 
 		t_summary *summary = NULL;
@@ -111,8 +114,6 @@ static int	next_syscall(const pid_t child_pid, const unsigned int flags) {
 		}
 
 		ptrace(PTRACE_GETREGSET, child_pid, NT_PRSTATUS, &iov);
-//		fprintf(stderr,"2orig_rax=%llu ", regs.orig_rax);
-
 		if ((int)regs.rax < 0 && summary != NULL) {
 			summary->errors++;
 		}

@@ -27,3 +27,17 @@ test -c ls -la
 test -c -- ls
 test -- -c ls
 test -- ls
+
+for i in {1..5}
+do
+  OUTFILE="correction/test_${i}.out"
+  gcc -pthread "correction/test_${i}.c" -o $OUTFILE
+  if [[ $i -ne 2 ]]; then
+    test $OUTFILE
+  fi
+done
+
+#test "correction/test_1.out"
+#test "correction/test_3.out"
+#test "correction/test4.out"
+#test "correction/test_5.out"

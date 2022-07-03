@@ -13,6 +13,10 @@
 #define FLAG_SUMMARY_CHAR 'c'
 #define FLAG_SUMMARY_VALUE 0b01
 
+#define NO_ACTION 0
+#define CONTINUE 1
+#define BREAK 2
+
 #define MAX_ERRNO_NB 131
 typedef struct s_errno {
 	int nb;
