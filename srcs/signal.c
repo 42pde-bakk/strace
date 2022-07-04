@@ -87,10 +87,7 @@ void check_detached(const struct user_regs_struct *regs, const unsigned int flag
 		detach(regs, flags);
 }
 
-void	print_siginfo_t(const siginfo_t *siginfo, int status) {
-	int sig = WSTOPSIG(status);
-	(void)sig;
-
+void	print_siginfo_t(const siginfo_t *siginfo) {
 	fprintf(stderr, "--- %s {si_signo=%s, si_code=%s, si_pid=%d, si_uid=%d, si_status=%d, si_utime=%ld, si_stime=%ld} ---\n",
 			get_signal_name(siginfo->si_signo),
 			get_signal_name(siginfo->si_signo),
@@ -134,7 +131,7 @@ int	check_child_state(const int status, const unsigned int flags) {
 		bzero(&siginfo, sizeof(siginfo));
 		if ((ptrace(PTRACE_GETSIGINFO, g_childpid, NULL, &siginfo) != -1 && !(siginfo.si_signo == SIGTRAP && siginfo.si_code != 0))) {
 			if (!(flags & FLAG_SUMMARY_VALUE)) {
-				print_siginfo_t(&siginfo, status);
+				print_siginfo_t(&siginfo);
 			}
 			if (WSTOPSIG(status) == SIGSEGV) {
 				if (flags & FLAG_SUMMARY_VALUE) {
