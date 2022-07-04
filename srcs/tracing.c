@@ -17,6 +17,7 @@
 #include <sys/uio.h>
 #include <elf.h>
 #include <time.h>
+#include "user_regs_structs.h"
 
 e_arch arch;
 t_syscall *syscalls;
@@ -65,10 +66,13 @@ void	get_arch(const struct iovec *iov) {
 	if (done)
 		return ;
 	done = true;
+	fprintf(stderr, "sizeof = %zu\n", iov->iov_len);
 	if (iov->iov_len == user_regs_struct_size_32) {
 		arch = ARCH_32;
 		max_syscall_nb = MAX_SYSCALL_NB_32;
 		syscalls = syscalls_32;
+		fprintf(stderr, "32 bits bro\n");
+		exit(1);
 	}
 	else {
 		arch = ARCH_64;
@@ -78,12 +82,13 @@ void	get_arch(const struct iovec *iov) {
 }
 
 static int	next_syscall(const pid_t child_pid, const unsigned int flags) {
-	struct user_regs_struct regs;
+	t_user_regs_struct_64	regs64;
+	t_user_regs				regs;
 	int	status;
 	long ret;
 	int childstate_action;
 	struct iovec iov = {
-			.iov_base = &regs,
+			.iov_base = &regs64,
 			.iov_len = sizeof(struct user_regs_struct)
 	};
 	bool isAlive = true;
@@ -110,7 +115,8 @@ static int	next_syscall(const pid_t child_pid, const unsigned int flags) {
 			perror("PTRACE_GETREGS1");
 			return (EXIT_FAILURE);
 		}
-		get_arch(&iov);
+		regs = convert_to_regs(&regs64);
+		fprintf(stderr, "syscall = %llu\n", regs64.orig_rax);
 		if (!(flags & FLAG_SUMMARY_VALUE)) {
 			handle_syscall(&regs, child_pid);
 		}
@@ -132,14 +138,15 @@ static int	next_syscall(const pid_t child_pid, const unsigned int flags) {
 		check_detached(&regs, flags);
 
 		t_summary *summary = NULL;
-		if (regs.orig_rax <= max_syscall_nb) {
-			summary = &syscalls[regs.orig_rax].summary;
+		if (regs64.orig_rax <= max_syscall_nb) {
+			summary = &syscalls[regs64.orig_rax].summary;
 			double elapsed_time = measure_elapsed_time(start_time);
 			summary->calls++;
 			summary->seconds += elapsed_time;
 		}
 
 		ptrace(PTRACE_GETREGSET, child_pid, NT_PRSTATUS, &iov);
+		regs = convert_to_regs(&regs64);
 		if ((int)regs.rax < 0 && summary != NULL) {
 			summary->errors++;
 		}

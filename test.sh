@@ -5,7 +5,6 @@ GREEN=$'\e[1;32m'
 MAGENTA=$'\e[1;35m'
 CYN=$'\e[1;36m'
 END=$'\e[0m'
-make -s
 
 function test {
   strace "$@" >/dev/null 2>&1
@@ -30,9 +29,12 @@ test -- ls
 
 for i in {1..5}
 do
-  OUTFILE="correction/test_${i}.out"
-  gcc -pthread "correction/test_${i}.c" -o $OUTFILE
+  OUTFILE_64="correction/test_${i}_64.out"
+  OUTFILE_32="correction/test_${i}_32.out"
+  gcc -pthread "correction/test_${i}.c" -o $OUTFILE_64
+  gcc -pthread "correction/test_${i}.c" -o $OUTFILE_32 -m32
   if [[ $i -ne 2 ]]; then
-    test $OUTFILE
+    test $OUTFILE_64
+    test $OUTFILE_32
   fi
 done

@@ -75,44 +75,40 @@ static void	switch_case(const e_syscall_type eSyscallType, const unsigned long l
 	}
 }
 
-void	mmap_handler(const struct user_regs_struct *regs) {
+void	mmap_handler(const t_user_regs *regs) {
 	const t_syscall	syscal_mmap = syscalls[9];
 	fprintf(stderr, "%s(", syscal_mmap.name);
-	switch_case(syscal_mmap.rdi, regs->rdi);
+	switch_case(syscal_mmap.rdi, regs->regs[0]);
 
-	fprintf(stderr, ", %zu, ", (size_t)regs->rsi);
-	mmap_handle_prots(regs->rdx);
+	fprintf(stderr, ", %zu, ", (size_t)regs->regs[1]);
+	mmap_handle_prots(regs->regs[2]);
 	fprintf(stderr, ", ");
-	mmap_handle_flags(regs->r10);
-	fprintf(stderr, ", %d, %ld)", (int)regs->r8, (long int)regs->r9);
+	mmap_handle_flags(regs->regs[3]);
+	fprintf(stderr, ", %d, %ld)", (int)regs->regs[4], (long int)regs->regs[5]);
 }
 
-void	ptrace_handler(const struct user_regs_struct *regs) {
+void	ptrace_handler(const t_user_regs *regs) {
 	const t_syscall syscall_ptrace = syscalls[101];
 	fprintf(stderr, "%s(", syscall_ptrace.name);
-	enum__ptrace_request_handler(regs->rdi);
-	fprintf(stderr, ", %d, %p, %p)", (int)regs->rsi, (void *)regs->rdx, (void *)regs->r10);
+	enum__ptrace_request_handler(regs->regs[0]);
+	fprintf(stderr, ", %d, %p, %p)", (int)regs->regs[1], (void *)regs->regs[2], (void *)regs->regs[3]);
 }
 
-void	print_syscall(const struct user_regs_struct *regs) {
-	unsigned long long int syscall_nb = regs->orig_rax;
+void	print_syscall(const t_user_regs *regs) {
+	unsigned long long int syscall_nb = regs->syscall;
 
-	const unsigned long long int registers[6] = {
-			regs->rdi, regs->rsi, regs->rdx,
-			regs->r10, regs->r8, regs->r9
-	};
 	if (syscall_nb > max_syscall_nb) {
 		fprintf(stderr, "syscall_%llubad(%llx, %llx, %llx, %llx, %llx, %llx)",
 				syscall_nb,
-				regs->rdi, regs->rsi, regs->rdx,
-				regs->r10, regs->r8, regs->r9);
+				regs->regs[0], regs->regs[1], regs->regs[2],
+				regs->regs[3], regs->regs[4], regs->regs[5]);
 		return ;
 	}
 	const t_syscall syscall = syscalls[syscall_nb];
 	// print name
 	fprintf(stderr, "%s(", syscall.name);
 	for (int i = 0; i < 6 && syscall.registers[i] != NONE; i++) {
-		switch_case(syscall.registers[i], registers[i]);
+		switch_case(syscall.registers[i], regs->regs[i]);
 
 		if (i < 5 && syscall.registers[i + 1] != NONE) {
 			fprintf(stderr, ", ");
@@ -121,26 +117,28 @@ void	print_syscall(const struct user_regs_struct *regs) {
 	fprintf(stderr, ")");
 }
 
-void	handle_syscall(const struct user_regs_struct *regs, const pid_t child_pid) {
-	const unsigned long long int syscall_nb = regs->orig_rax;
+void	handle_syscall(const t_user_regs *regs, pid_t child_pid) {
+	const unsigned long long int syscall_nb = regs->syscall;
 
 	if (syscall_nb > max_syscall_nb) {
 		fprintf(stderr, "syscall_%#llxbad(%#llx, %#llx, %#llx, %#llx, %#llx, %#llx)",
-				syscall_nb, regs->rdi, regs->rsi, regs->rdx, regs->r10, regs->r8, regs->r9);
+				syscall_nb, regs->regs[0], regs->regs[1], regs->regs[2],
+				regs->regs[3], regs->regs[4], regs->regs[5]
+		);
 	}
-//	fprintf(stderr, "nb = %llu\n", syscall_nb);
+	fprintf(stderr, "nb = %llu\n", syscall_nb);
 	const t_syscall syscall = syscalls[syscall_nb];
 
 	g_childpid = child_pid;
 	return syscall.handler(regs);
 }
 
-int	check_and_print_errno(const struct user_regs_struct *regs) {
-	if (regs->orig_rax > max_syscall_nb) {
+int	check_and_print_errno(const t_user_regs *regs) {
+	if (regs->syscall > max_syscall_nb) {
 		fprintf(stderr, "%d", (int)regs->rax);
 		return (1);
 	}
-	const t_syscall syscall = syscalls[regs->orig_rax];
+	const t_syscall syscall = syscalls[regs->syscall];
 	const int child_errno_nb = -1 * (int)regs->rax;
 
 	if ((int)regs->rax < 0 && (syscall.return_value != VOID && syscall.return_value != NONE) && child_errno_nb <= MAX_ERRNO_NB) {
@@ -151,8 +149,8 @@ int	check_and_print_errno(const struct user_regs_struct *regs) {
 	return (0);
 }
 
-void print_syscall_return_value(struct user_regs_struct *regs) {
-	const unsigned long long int syscallNb = regs->orig_rax;
+void print_syscall_return_value(const t_user_regs *regs) {
+	const unsigned long long int syscallNb = regs->syscall;
 	if (syscallNb > max_syscall_nb) {
 		fprintf(stderr, " = %llu\n", regs->rax);
 		return ;

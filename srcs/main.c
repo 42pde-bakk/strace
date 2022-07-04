@@ -10,15 +10,14 @@
 
 pid_t	g_childpid = -1;
 
-static int execute_child(char **argv, char *abspath) {
+static int execute_child(char **argv, char *abspath, char *const *envp) {
 	int		res;
 	char	**cmds;
 
 	cmds = argv;
 	cmds[0] = abspath;
-	res = execvp(cmds[0], cmds);
-	if (res == -1)
-		perror("execvp");
+	res = execve(cmds[0], cmds, envp);
+	perror("execve");
 	return (res);
 }
 
@@ -37,7 +36,7 @@ static int	get_path_nb(int argc, char **argv) {
 	return (-1);
 }
 
-int main(int argc, char **argv, const char **envp) {
+int main(int argc, char **argv, char *const *envp) {
 	unsigned int	flags;
 	int				error = 0;
 	int				path_nb;
@@ -71,9 +70,10 @@ int main(int argc, char **argv, const char **envp) {
 		return (EXIT_FAILURE);
 	}
 	if (g_childpid == 0) {
-		return (execute_child(&argv[path_nb], abspath));
+		return (execute_child(&argv[path_nb], abspath, envp));
 	}
 	setup_sighandlers();
+	get_architecture(abspath);
 	free(abspath);
 	return (start_tracing(flags));
 }

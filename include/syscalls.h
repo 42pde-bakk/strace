@@ -8,12 +8,15 @@
 #include <sys/user.h>
 #include <stdlib.h>
 #include <summary.h>
+#include "user_regs_structs.h"
+
 #define MAX_SYSCALL_NB_64 334
 #define MAX_SYSCALL_NB_32 386
 
 typedef enum {
 	ARCH_32,
-	ARCH_64
+	ARCH_64,
+	INVALID
 }	e_arch;
 extern e_arch arch;
 extern size_t max_syscall_nb;
@@ -39,7 +42,7 @@ typedef enum syscall_type {
 	LONG_LONG_INT
 }	e_syscall_type;
 
-typedef void (*handler_func)(const struct user_regs_struct*);
+typedef void (*handler_func)(const t_user_regs *);
 
 typedef struct s_syscall {
 	const e_syscall_type		return_value;
@@ -64,12 +67,12 @@ extern t_syscall *syscalls;
 /*
  * srcs/print_syscall.c
  */
-int		check_and_print_errno(const struct user_regs_struct *regs);
-void	handle_syscall(const struct user_regs_struct *regs, pid_t child_pid);
-void	print_syscall(const struct user_regs_struct *regs);
-void	ptrace_handler(const struct user_regs_struct *regs);
-void	mmap_handler(const struct user_regs_struct *regs);
-void	print_syscall_return_value(struct user_regs_struct *regs);
+int		check_and_print_errno(const t_user_regs *regs);
+void	handle_syscall(const t_user_regs *regs, pid_t child_pid);
+void	print_syscall(const t_user_regs *regs);
+void	ptrace_handler(const t_user_regs *regs);
+void	mmap_handler(const t_user_regs *regs);
+void	print_syscall_return_value(const t_user_regs *regs);
 
 /*
  * srcs/ptrace_request_handler.c

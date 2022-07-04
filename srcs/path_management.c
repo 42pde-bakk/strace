@@ -8,7 +8,7 @@
 #include "libft.h"
 #define PATH_PREFIX "PATH="
 
-static const char	*get_PATH(const char **envp) {
+static const char	*get_PATH(char *const *envp) {
 	size_t	i = 0;
 
 	while (envp[i]) {
@@ -48,7 +48,7 @@ static char	*get_abspath(const char *PATH_with_prefix, const char *arg) {
 	return (NULL);
 }
 
-char	*get_absolute_path(const char* arg, const char **envp) {
+char	*get_absolute_path(const char* arg, char *const *envp) {
 	const char	*PATH;
 
 	if (access(arg, F_OK | X_OK) == 0) {

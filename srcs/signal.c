@@ -11,6 +11,7 @@
 #include <sys/wait.h>
 #include "syscalls.h"
 #include "strace.h"
+#include "user_regs_structs.h"
 
 #define DETACH_EXIT_CODE 130
 #define SIGSEGV_EXIT_CODE 139
@@ -65,7 +66,7 @@ void	setup_sighandlers() {
 	signal(SIGQUIT, &sigquit_handler);
 }
 
-static void	detach(const struct user_regs_struct *regs, const unsigned int flags) {
+static void	detach(const t_user_regs *regs, const unsigned int flags) {
 	ptrace(PTRACE_DETACH, g_childpid, 0, 0);
 	if (flags & FLAG_SUMMARY_VALUE) {
 		fprintf(stderr, "ft_strace: Process %d detached\n", g_childpid);
@@ -82,7 +83,7 @@ static void	detach(const struct user_regs_struct *regs, const unsigned int flags
 	exit(DETACH_EXIT_CODE);
 }
 
-void check_detached(const struct user_regs_struct *regs, const unsigned int flags) {
+void check_detached(const t_user_regs *regs, const unsigned int flags) {
 	if (should_detach)
 		detach(regs, flags);
 }
@@ -134,9 +135,6 @@ int	check_child_state(const int status, const unsigned int flags) {
 		bzero(&siginfo, sizeof(siginfo));
 		if ((ptrace(PTRACE_GETSIGINFO, g_childpid, NULL, &siginfo) != -1 && !(siginfo.si_signo == SIGTRAP && siginfo.si_code != 0))) {
 			print_siginfo_t(&siginfo, status);
-			if (WSTOPSIG(status) & 0x80) {
-				fprintf(stderr, "0x80");
-			}
 			if (WSTOPSIG(status) == SIGSEGV) {
 				fprintf(stderr, "+++ killed by %s (core dumped) +++\n", get_signal_name(WSTOPSIG(status)));
 				exit(SIGSEGV_EXIT_CODE);

@@ -9,6 +9,8 @@
 #include <sys/user.h>
 #include <sys/types.h>
 #include <stdbool.h>
+#include "syscalls.h"
+#include "user_regs_structs.h"
 
 #define FLAG_SUMMARY_CHAR 'c'
 #define FLAG_SUMMARY_VALUE 0b01
@@ -43,7 +45,7 @@ extern pid_t g_childpid;
 sigset_t	*get_blocked_sigset();
 sigset_t	*get_empty_sigset();
 void	setup_sighandlers();
-void	check_detached(const struct user_regs_struct *regs, unsigned int flags);
+void	check_detached(const t_user_regs *regs, const unsigned int flags);
 int	check_child_state(int status, unsigned int flags);
 
 /*
@@ -54,7 +56,7 @@ int start_tracing(unsigned int flags);
 /*
  * srcs/path_management.c
  */
-char	*get_absolute_path(const char* arg, const char **envp);
+char	*get_absolute_path(const char* arg, char *const *envp);
 
 /*
  * srcs/parse_flags.c
@@ -85,5 +87,10 @@ void	read_string_array(unsigned long long regval);
  */
 const char	*get_signal_name(int nb);
 const char *get_signal_code(int signal_nb, int signal_code);
+
+/*
+ * srcs/get_architecture.c
+ */
+e_arch get_architecture(const char *filename);
 
 #endif //STRACE_STRACE_H
