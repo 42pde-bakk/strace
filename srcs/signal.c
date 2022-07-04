@@ -110,7 +110,7 @@ int	check_child_state(const int status, const unsigned int flags) {
 		}
 		else {
 			fprintf(stderr, " = ?\n");
-			// Do I need to do check_and_print_errno
+			// Do I need to do check_and_print_errno ?
 			fprintf(stderr, "+++ exited with %d +++\n", WEXITSTATUS(status));
 		}
 		return (BREAK);
