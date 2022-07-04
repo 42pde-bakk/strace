@@ -5,7 +5,6 @@ GREEN=$'\e[1;32m'
 MAGENTA=$'\e[1;35m'
 CYN=$'\e[1;36m'
 END=$'\e[0m'
-make -s
 
 function test {
   strace "$@" >/dev/null 2>&1
@@ -20,6 +19,10 @@ function test {
     echo "[${GREEN}OK${END}] Test '$@'"
   fi
 }
+
+if [[ ! -f "ft_strace" ]];then
+  make
+fi
 
 test ls
 test ls -la
