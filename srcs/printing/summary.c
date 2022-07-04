@@ -75,7 +75,7 @@ static void	print_summary_syscall(const t_summary *summary, const double total_s
 	fprintf(stderr, "%*.*f %*f %*zu %*zu %*.0zu %-*s\n",
 			(int)column_widths[TIME_PERCENTAGE], 2, summary->seconds / total_seconds * 100,
 			(int)column_widths[TOTALSECONDS], summary->seconds,
-			(int)column_widths[USECS_PER_CALL], (size_t)(summary->seconds * 1000000 / summary->calls),
+			(int)column_widths[USECS_PER_CALL], (size_t)(summary->seconds * 1000000 / (double)summary->calls),
 			(int)column_widths[CALLS], summary->calls,
 			(int)column_widths[ERRORS], summary->errors ,
 			(int)column_widths[SYSCALL_NAME], syscalls[summary->syscallNb].name

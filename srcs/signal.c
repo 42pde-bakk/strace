@@ -134,9 +134,6 @@ int	check_child_state(const int status, const unsigned int flags) {
 		bzero(&siginfo, sizeof(siginfo));
 		if ((ptrace(PTRACE_GETSIGINFO, g_childpid, NULL, &siginfo) != -1 && !(siginfo.si_signo == SIGTRAP && siginfo.si_code != 0))) {
 			print_siginfo_t(&siginfo, status);
-			if (WSTOPSIG(status) & 0x80) {
-				fprintf(stderr, "0x80");
-			}
 			if (WSTOPSIG(status) == SIGSEGV) {
 				fprintf(stderr, "+++ killed by %s (core dumped) +++\n", get_signal_name(WSTOPSIG(status)));
 				exit(SIGSEGV_EXIT_CODE);

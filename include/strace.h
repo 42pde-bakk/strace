@@ -53,7 +53,7 @@ int start_tracing(unsigned int flags);
 /*
  * srcs/path_management.c
  */
-char	*get_absolute_path(const char* arg, const char **envp);
+char	*get_absolute_path(const char* arg, char *const *envp);
 
 /*
  * srcs/parse_flags.c
