@@ -30,6 +30,13 @@ typedef struct s_signal {
 	const char	*name;
 }	t_signal;
 
+typedef struct s_errorsignal {
+	int			nb;
+	const char	*name;
+	int			exit_status;
+	const char	*exit_msg;
+}	t_errorsignal;
+
 typedef struct s_signal_code {
 	int signal;
 	t_signal	*codes;
@@ -84,5 +91,6 @@ void	read_string_array(unsigned long long regval);
  */
 const char	*get_signal_name(int nb);
 const char *get_signal_code(int signal_nb, int signal_code);
+const t_errorsignal	*get_error_signal(int signal_nb);
 
 #endif //STRACE_STRACE_H

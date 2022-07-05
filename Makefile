@@ -46,7 +46,7 @@ $(NAME): $(LIBS) $(OBJS) $(HEADER)
 	$(MAKE) -C $< && cp $</$@ .
 
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.c
-	mkdir -p "$(@D)"
+	@mkdir -p "$(@D)"
 	$(CC) -c $(CFLAGS) $(INCLUDE) $< -o $@
 
 clean:

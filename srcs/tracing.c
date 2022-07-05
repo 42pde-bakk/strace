@@ -73,12 +73,11 @@ static int	next_syscall(const pid_t child_pid, const unsigned int flags) {
 
 		status = wait_child();
 		childstate_action = check_child_state(status, flags);
+		check_detached(&regs, flags);
 		if (childstate_action == CONTINUE)
 			continue ;
 		else if (childstate_action == BREAK)
 			break ;
-
-		check_detached(&regs, flags);
 
 		ret = ptrace(PTRACE_GETREGSET, child_pid, NT_PRSTATUS, &iov);
 		if (ret) {
@@ -98,6 +97,7 @@ static int	next_syscall(const pid_t child_pid, const unsigned int flags) {
 		const clock_t start_time = clock();
 		status = wait_child();
 		childstate_action = check_child_state(status, flags);
+		check_detached(&regs, flags);
 		if (childstate_action == CONTINUE)
 			continue ;
 		else if (childstate_action == BREAK)

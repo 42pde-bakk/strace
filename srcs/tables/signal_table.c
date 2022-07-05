@@ -72,6 +72,16 @@ static const t_signal	g_sig[] = {
 				{ 65, NULL}
 };
 
+static const t_errorsignal error_signals[] = {
+		{.nb = SIGILL, .name = "SIGILL", .exit_status = 132, .exit_msg = "Ended by SIGILL\n"},
+		{.nb = SIGTRAP, .name = "SIGTRAP", .exit_status = 133, .exit_msg = "Ended by SIGTRAP\n"},
+		{.nb = SIGABRT, .name = "SIGABRT", .exit_status = 134, .exit_msg = "Ended by SIGABRT\n"},
+		{.nb = SIGFPE, .name = "SIGFPE", .exit_status = 136, .exit_msg = "Ended by SIGFPE\n"},
+		{.nb = SIGBUS, .name = "SIGBUS", .exit_status = 138, .exit_msg = "Bus error\n"},
+		{.nb = SIGSEGV, .name = "SIGSEGV", .exit_status = 139, .exit_msg = "Segmentation fault\n"},
+		{.nb = -1, .name = NULL, .exit_status = -1, .exit_msg = NULL}
+};
+
 static const t_signal SIGILL_codes[] = {
 		{ILL_ILLOPC, "ILL_ILLOPC"},
 		{ILL_ILLOPN, "ILL_ILLOPN"},
@@ -177,4 +187,13 @@ const char *get_signal_code(const int signal_nb, const int signal_code) {
 		default:
 			return ("SI_NOINFO2");
 	}
+}
+
+const t_errorsignal	*get_error_signal(const int signal_nb) {
+	for (unsigned int i = 0; error_signals[i].name; i++) {
+		if (error_signals[i].nb == signal_nb) {
+			return (&error_signals[i]);
+		}
+	}
+	return (NULL);
 }
